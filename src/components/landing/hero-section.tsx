@@ -50,27 +50,46 @@ const fadeUpVariants = {
   },
 };
 
+// Pre-computed particle positions to avoid Math.random during render
+const particleData = [
+  { x: "12%", y: "8%", scale: 0.7, duration: 15, delay: 1 },
+  { x: "28%", y: "23%", scale: 0.9, duration: 18, delay: 2 },
+  { x: "45%", y: "15%", scale: 0.5, duration: 12, delay: 0 },
+  { x: "67%", y: "32%", scale: 0.8, duration: 20, delay: 3 },
+  { x: "82%", y: "18%", scale: 0.6, duration: 14, delay: 1.5 },
+  { x: "15%", y: "55%", scale: 0.75, duration: 16, delay: 2.5 },
+  { x: "38%", y: "67%", scale: 0.85, duration: 19, delay: 0.5 },
+  { x: "55%", y: "45%", scale: 0.65, duration: 13, delay: 4 },
+  { x: "78%", y: "72%", scale: 0.55, duration: 17, delay: 1 },
+  { x: "92%", y: "38%", scale: 0.95, duration: 11, delay: 2 },
+  { x: "8%", y: "82%", scale: 0.6, duration: 15, delay: 3.5 },
+  { x: "35%", y: "88%", scale: 0.7, duration: 18, delay: 0 },
+  { x: "58%", y: "78%", scale: 0.8, duration: 14, delay: 4.5 },
+  { x: "72%", y: "92%", scale: 0.5, duration: 20, delay: 1 },
+  { x: "95%", y: "65%", scale: 0.75, duration: 12, delay: 2 },
+];
+
 // Floating particles for motion.zajno.com style
 function FloatingParticles() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(20)].map((_, i) => (
+      {particleData.map((particle, i) => (
         <motion.div
           key={i}
           className="absolute w-1 h-1 bg-primary/30 rounded-full"
           initial={{
-            x: Math.random() * 100 + "%",
-            y: Math.random() * 100 + "%",
-            scale: Math.random() * 0.5 + 0.5,
+            x: particle.x,
+            y: particle.y,
+            scale: particle.scale,
           }}
           animate={{
             y: [null, "-100%"],
             opacity: [0, 1, 0],
           }}
           transition={{
-            duration: Math.random() * 10 + 10,
+            duration: particle.duration,
             repeat: Infinity,
-            delay: Math.random() * 5,
+            delay: particle.delay,
             ease: "linear",
           }}
         />
@@ -289,17 +308,23 @@ export function HeroSection() {
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.div
+      {/* Scroll indicator - clickable */}
+      <motion.button
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        onClick={() => {
+          document
+            .getElementById("courses")
+            ?.scrollIntoView({ behavior: "smooth" });
+        }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer hover:scale-110 transition-transform"
+        aria-label="Scroll to courses"
       >
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2"
+          className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2 hover:border-primary transition-colors"
         >
           <motion.div
             animate={{ y: [0, 12, 0], opacity: [1, 0, 1] }}
@@ -307,7 +332,7 @@ export function HeroSection() {
             className="w-1.5 h-1.5 rounded-full bg-primary"
           />
         </motion.div>
-      </motion.div>
+      </motion.button>
     </section>
   );
 }

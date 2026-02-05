@@ -1,33 +1,40 @@
 "use client";
 
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Play, Pause, RotateCcw, ChevronRight } from "lucide-react";
 
 const codeLines = [
-  { code: "for i in range(5):", indent: 0 },
-  { code: "    print(i)", indent: 1 },
+  { code: "void main() {", indent: 0, keyword: "void" },
+  { code: "  for (int i = 0; i < 5; i++) {", indent: 1, keyword: "for" },
+  { code: "    print(i);", indent: 2, keyword: "print" },
+  { code: "  }", indent: 1, keyword: "" },
+  { code: "}", indent: 0, keyword: "" },
 ];
 
 export function ConceptSection() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIteration, setCurrentIteration] = useState(-1);
   const [outputValues, setOutputValues] = useState<number[]>([]);
+  const [activeLineIndex, setActiveLineIndex] = useState(-1);
 
   const progress = useMotionValue(0);
-  const loopIndicatorX = useTransform(progress, [0, 5], [0, 100]);
 
   useEffect(() => {
     if (isPlaying && currentIteration < 4) {
       const timer = setTimeout(() => {
-        setCurrentIteration((prev) => prev + 1);
-        setOutputValues((prev) => [...prev, currentIteration + 1]);
-        progress.set(currentIteration + 2);
+        setActiveLineIndex(2); // Highlight print line
+        setTimeout(() => {
+          setCurrentIteration((prev) => prev + 1);
+          setOutputValues((prev) => [...prev, currentIteration + 1]);
+          progress.set(currentIteration + 2);
+        }, 300);
       }, 800);
       return () => clearTimeout(timer);
     } else if (currentIteration >= 4) {
       setIsPlaying(false);
+      setActiveLineIndex(-1);
     }
   }, [isPlaying, currentIteration, progress]);
 
@@ -35,6 +42,7 @@ export function ConceptSection() {
     if (currentIteration >= 4) {
       handleReset();
     }
+    setActiveLineIndex(1); // Start at for loop
     setIsPlaying(true);
   };
 
@@ -46,7 +54,49 @@ export function ConceptSection() {
     setIsPlaying(false);
     setCurrentIteration(-1);
     setOutputValues([]);
+    setActiveLineIndex(-1);
     progress.set(0);
+  };
+
+  const highlightSyntax = (line: (typeof codeLines)[0]) => {
+    const { code, keyword } = line;
+
+    // Keywords
+    const keywords = ["void", "main", "for", "int", "print"];
+    let highlighted = code;
+
+    return (
+      <span className="font-mono">
+        {code.split(/(\s+)/).map((part, i) => {
+          if (keywords.includes(part)) {
+            return (
+              <span key={i} className="text-purple-400">
+                {part}
+              </span>
+            );
+          }
+          if (part.match(/^\d+$/)) {
+            return (
+              <span key={i} className="text-orange-400">
+                {part}
+              </span>
+            );
+          }
+          if (part === "i") {
+            return (
+              <span key={i} className="text-cyan-400">
+                {part}
+              </span>
+            );
+          }
+          return (
+            <span key={i} className="text-foreground">
+              {part}
+            </span>
+          );
+        })}
+      </span>
+    );
   };
 
   return (
@@ -63,7 +113,7 @@ export function ConceptSection() {
             See Code <span className="text-gradient-primary">Come Alive</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Watch how a simple loop executes step by step. Our motion-powered
+            Watch how a Dart for loop executes step by step. Our motion-powered
             visualizations make abstract concepts tangible.
           </p>
         </motion.div>
@@ -78,45 +128,37 @@ export function ConceptSection() {
                 <div className="w-3 h-3 rounded-full bg-yellow-500" />
                 <div className="w-3 h-3 rounded-full bg-green-500" />
               </div>
-              <span className="text-xs text-muted-foreground ml-2">
-                loop_demo.py
+              <span className="text-xs text-muted-foreground ml-2 flex items-center gap-2">
+                <span className="text-blue-400">💙</span>
+                loop_demo.dart
               </span>
             </div>
 
             {/* Code Content */}
-            <div className="p-6 font-mono text-sm">
+            <div className="p-6 text-sm">
               {codeLines.map((line, index) => (
                 <motion.div
                   key={index}
-                  className="flex items-center gap-3 py-1"
+                  className="flex items-center gap-3 py-1.5 rounded-md px-2 -mx-2"
                   animate={{
                     backgroundColor:
-                      isPlaying && index === 1 && currentIteration >= 0
-                        ? "rgba(0, 230, 118, 0.1)"
+                      activeLineIndex === index
+                        ? "rgba(0, 230, 118, 0.15)"
                         : "transparent",
                   }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <span className="text-muted-foreground w-6 text-right">
+                  <span className="text-muted-foreground w-6 text-right text-xs select-none">
                     {index + 1}
                   </span>
-                  <span>
-                    <span className="text-purple-400">
-                      {line.code.includes("for") ? "for" : ""}
-                    </span>
-                    <span className="text-foreground">
-                      {line.code.includes("for")
-                        ? line.code.replace("for", "")
-                        : line.code}
-                    </span>
-                  </span>
-                  {index === 1 && currentIteration >= 0 && (
+                  <span className="flex-1">{highlightSyntax(line)}</span>
+                  {index === 2 && currentIteration >= 0 && (
                     <motion.span
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="text-primary font-bold"
+                      className="text-primary font-bold text-xs bg-primary/10 px-2 py-1 rounded"
                     >
-                      ← i = {currentIteration}
+                      i = {currentIteration}
                     </motion.span>
                   )}
                 </motion.div>
@@ -125,13 +167,16 @@ export function ConceptSection() {
 
             {/* Progress Bar */}
             <div className="px-6 pb-4">
-              <div className="text-xs text-muted-foreground mb-2">
-                Loop Progress: {Math.max(0, currentIteration + 1)} / 5
+              <div className="text-xs text-muted-foreground mb-2 flex items-center justify-between">
+                <span>Loop Progress</span>
+                <span className="font-mono">
+                  {Math.max(0, currentIteration + 1)} / 5 iterations
+                </span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-primary rounded-full"
-                  style={{ width: `${((currentIteration + 1) / 5) * 100}%` }}
+                  className="h-full bg-gradient-to-r from-primary to-primary-dark rounded-full"
+                  animate={{ width: `${((currentIteration + 1) / 5) * 100}%` }}
                   transition={{ type: "spring", stiffness: 100 }}
                 />
               </div>
@@ -143,7 +188,7 @@ export function ConceptSection() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={isPlaying ? handlePause : handlePlay}
-                className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground"
+                className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/30"
               >
                 {isPlaying ? (
                   <Pause className="w-4 h-4" />
@@ -155,10 +200,17 @@ export function ConceptSection() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleReset}
-                className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted hover:bg-muted/80"
+                className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
               </motion.button>
+              <span className="text-xs text-muted-foreground ml-2">
+                {isPlaying
+                  ? "Running..."
+                  : currentIteration >= 4
+                    ? "Complete!"
+                    : "Click play to start"}
+              </span>
             </div>
           </Card>
 
@@ -200,15 +252,15 @@ export function ConceptSection() {
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">1.</span>
                   <span>
-                    <strong className="text-foreground">range(5)</strong>{" "}
-                    creates a sequence: [0, 1, 2, 3, 4]
+                    <strong className="text-foreground">int i = 0</strong>{" "}
+                    initializes the counter variable to zero
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">2.</span>
                   <span>
-                    <strong className="text-foreground">for i in</strong>{" "}
-                    assigns each value to variable <code>i</code>
+                    <strong className="text-foreground">i &lt; 5</strong> is the
+                    condition—loop continues while true
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -221,8 +273,8 @@ export function ConceptSection() {
                 <li className="flex items-start gap-2">
                   <span className="text-primary font-bold">4.</span>
                   <span>
-                    Loop <strong className="text-foreground">repeats</strong>{" "}
-                    until all values are processed
+                    <strong className="text-foreground">i++</strong> increments
+                    i by 1 after each iteration
                   </span>
                 </li>
               </ul>

@@ -234,7 +234,7 @@ function CourseCard({
 
 export function CoursesSection() {
   return (
-    <section className="py-24 px-4 relative overflow-hidden">
+    <section id="courses" className="py-24 px-4 relative overflow-hidden">
       {/* Background accents */}
       <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[150px] -translate-y-1/2" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-blue-500/5 blur-[120px]" />

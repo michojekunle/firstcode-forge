@@ -40,7 +40,7 @@ export function Footer() {
             </p>
             <div className="flex gap-3">
               <motion.a
-                href="https://github.com"
+                href="https://github.com/michojekunle/firstcode-forge"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.1 }}
@@ -50,7 +50,7 @@ export function Footer() {
                 <Github className="h-5 w-5" />
               </motion.a>
               <motion.a
-                href="https://twitter.com"
+                href="https://twitter.com/devvmichael"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.1 }}
