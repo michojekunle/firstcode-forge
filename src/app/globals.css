@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   FIRSTCODE FORGE - DESIGN SYSTEM
+   World-class, minimalistic design with signature green accent
+   ============================================================================ */
+
+/* --------------------------------------------------------------------------
+   CSS CUSTOM PROPERTIES (Design Tokens)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Colors - Light Mode */
+  --background: #FAFAFA;
+  --foreground: #0A0A0A;
+  --muted: #F4F4F5;
+  --muted-foreground: #71717A;
+  --border: #E4E4E7;
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+
+  /* Signature Green - The extraordinary accent */
+  --primary: #00E676;
+  --primary-dark: #00C853;
+  --primary-glow: rgba(0, 230, 118, 0.4);
+  --primary-foreground: #0A0A0A;
+
+  /* Secondary */
+  --secondary: #18181B;
+  --secondary-foreground: #FAFAFA;
+
+  /* Semantic */
+  --destructive: #EF4444;
+  --success: #22C55E;
+
+  /* Radii */
+  --radius: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* Transitions - Zajno-inspired easing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+}
+
+.dark {
+  /* Colors - Dark Mode */
+  --background: #0A0A0A;
+  --foreground: #FAFAFA;
+  --muted: #18181B;
+  --muted-foreground: #A1A1AA;
+  --border: #27272A;
+  --card: #18181B;
+  --card-foreground: #FAFAFA;
+
+  /* Secondary */
+  --secondary: #27272A;
+  --secondary-foreground: #FAFAFA;
+}
+
+/* --------------------------------------------------------------------------
+   TAILWIND THEME INTEGRATION
+   -------------------------------------------------------------------------- */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  /* Custom fonts - Premium typography from CDN */
+  --font-heading: "Clash Display", "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Cabinet Grotesk", "Inter", system-ui, sans-serif;
+  --font-playful: "Comic Neue", "Comic Sans MS", cursive;
+  --font-sans: "Cabinet Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+/* --------------------------------------------------------------------------
+   BASE STYLES
+   -------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--duration-normal) var(--ease-in-out),
+    color var(--duration-normal) var(--ease-in-out);
+}
+
+/* Headings use Clash Display */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Font utility classes */
+.font-playful {
+  font-family: var(--font-playful);
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Selection */
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Focus Ring */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   UTILITY CLASSES
+   -------------------------------------------------------------------------- */
+
+/* Glassmorphism */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Primary Glow Effect */
+.glow-primary {
+  box-shadow: 0 0 20px var(--primary-glow),
+    0 0 60px var(--primary-glow);
+}
+
+/* Text gradient */
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, #00BFA5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated underline */
+.animated-underline {
+  position: relative;
+}
+
+.animated-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  transition: width var(--duration-normal) var(--ease-out-expo);
+}
+
+.animated-underline:hover::after {
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   ANIMATIONS
+   -------------------------------------------------------------------------- */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px var(--primary-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 40px var(--primary-glow),
+      0 0 80px var(--primary-glow);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in var(--duration-slow) var(--ease-out-expo) forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up var(--duration-slow) var(--ease-out-expo) forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
