@@ -1,11 +1,11 @@
 "use client";
 
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Clock, Users, Star, Zap } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { RequestCourseModal } from "@/components/modals/request-course-modal";
 
 const courses = [
   {
@@ -233,6 +233,8 @@ function CourseCard({
 }
 
 export function CoursesSection() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <section id="courses" className="py-24 px-4 relative overflow-hidden">
       {/* Background accents */}
@@ -281,11 +283,20 @@ export function CoursesSection() {
           <p className="text-muted-foreground mb-4">
             More courses coming soon. Got a request?
           </p>
-          <Button variant="outline" className="gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => setIsModalOpen(true)}
+          >
             Request a Course
             <ArrowRight className="w-4 h-4" />
           </Button>
         </motion.div>
+
+        <RequestCourseModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </section>
   );

@@ -2,21 +2,20 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Terminal, Github, Twitter } from "lucide-react";
+import { Github, Twitter } from "lucide-react";
 
 const footerLinks = {
+  courses: [
+    { label: "Flutter Fundamentals", href: "/courses/flutter-fundamentals" },
+    { label: "Flutter Advanced", href: "/courses/flutter-advanced" },
+    { label: "Systems Design", href: "/courses/systems-design" },
+  ],
   product: [
-    { label: "Learn", href: "/learn" },
+    { label: "Learn", href: "/#courses" },
     { label: "Challenges", href: "/challenges" },
     { label: "Roadmap", href: "/roadmap" },
-    { label: "Pricing", href: "/pricing" },
+    { label: "Onboarding", href: "/onboarding" },
   ],
-  resources: [
-    { label: "Documentation", href: "/docs" },
-    { label: "Blog", href: "/blog" },
-    { label: "Community", href: "/community" },
-    { label: "FAQ", href: "/faq" },
-  ]
 };
 
 export function Footer() {
@@ -27,8 +26,49 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
-                <Terminal className="h-5 w-5 text-primary-foreground" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden">
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 512 512"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle cx="256" cy="256" r="256" className="fill-primary" />
+                  <path
+                    d="M128 320 L384 320 L360 380 L152 380 Z"
+                    className="fill-primary-foreground"
+                  />
+                  <path
+                    d="M160 180 L100 240 L160 300"
+                    stroke="currentColor"
+                    strokeWidth="24"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                    className="stroke-primary-foreground"
+                  />
+                  <path
+                    d="M352 180 L412 240 L352 300"
+                    stroke="currentColor"
+                    strokeWidth="24"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                    className="stroke-primary-foreground"
+                  />
+                  <text
+                    x="256"
+                    y="270"
+                    textAnchor="middle"
+                    fontFamily="system-ui"
+                    fontWeight="700"
+                    fontSize="120"
+                    className="fill-primary-foreground"
+                  >
+                    1
+                  </text>
+                </svg>
               </div>
               <span className="text-xl font-bold tracking-tight">
                 FirstCode<span className="text-gradient-primary">Forge</span>

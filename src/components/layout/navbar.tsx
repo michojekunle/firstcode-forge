@@ -5,11 +5,11 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/providers/theme-provider";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu, X, Terminal } from "lucide-react";
+import { Sun, Moon, Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const navLinks = [
-  { href: "/", label: "Home" },
+  { href: "/#courses", label: "Courses" },
   { href: "/learn", label: "Learn" },
   { href: "/challenges", label: "Challenges" },
   { href: "/roadmap", label: "Roadmap" },
@@ -37,9 +37,51 @@ export function Navbar() {
             <motion.div
               whileHover={{ rotate: 360 }}
               transition={{ duration: 0.6, ease: "easeInOut" }}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary"
+              className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden"
             >
-              <Terminal className="h-5 w-5 text-primary-foreground" />
+              {/* Custom logo SVG inline */}
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 512 512"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="256" cy="256" r="256" className="fill-primary" />
+                <path
+                  d="M128 320 L384 320 L360 380 L152 380 Z"
+                  className="fill-primary-foreground"
+                />
+                <path
+                  d="M160 180 L100 240 L160 300"
+                  stroke="currentColor"
+                  strokeWidth="24"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                  className="stroke-primary-foreground"
+                />
+                <path
+                  d="M352 180 L412 240 L352 300"
+                  stroke="currentColor"
+                  strokeWidth="24"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                  className="stroke-primary-foreground"
+                />
+                <text
+                  x="256"
+                  y="270"
+                  textAnchor="middle"
+                  fontFamily="system-ui"
+                  fontWeight="700"
+                  fontSize="120"
+                  className="fill-primary-foreground"
+                >
+                  1
+                </text>
+              </svg>
             </motion.div>
             <span className="text-xl font-bold tracking-tight">
               FirstCode<span className="text-gradient-primary">Forge</span>
@@ -83,9 +125,11 @@ export function Navbar() {
               )}
             </motion.button>
 
-            <Button size="sm" className="hidden md:inline-flex">
-              Get Started
-            </Button>
+            <Link href="/onboarding">
+              <Button size="sm" className="hidden md:inline-flex">
+                Get Started
+              </Button>
+            </Link>
 
             {/* Mobile menu toggle */}
             <motion.button
@@ -125,9 +169,11 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Button size="sm" className="mt-2 w-full">
-              Get Started
-            </Button>
+            <Link href="/onboarding" className="mt-2">
+              <Button size="sm" className="w-full">
+                Get Started
+              </Button>
+            </Link>
           </div>
         </motion.div>
       </nav>
