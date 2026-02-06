@@ -20,6 +20,13 @@ export interface Challenge {
   steps: string[];
 }
 
+export interface CourseProgress {
+  [courseId: string]: {
+    completedLessons: number[];
+    lastAccessed: number;
+  };
+}
+
 interface AppState {
   // User profile from survey
   profile: UserProfile;
@@ -37,6 +44,11 @@ interface AppState {
   // Survey step
   currentStep: number;
   setCurrentStep: (step: number) => void;
+
+  // Course progress tracking
+  courseProgress: CourseProgress;
+  setCourseProgress: (courseId: string, completedLessons: number[]) => void;
+  getCourseProgress: (courseId: string) => number[];
 }
 
 const initialProfile: UserProfile = {
@@ -49,7 +61,7 @@ const initialProfile: UserProfile = {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       profile: initialProfile,
       setProfile: (updates) =>
         set((state) => ({
@@ -65,12 +77,29 @@ export const useAppStore = create<AppState>()(
 
       currentStep: 0,
       setCurrentStep: (step) => set({ currentStep: step }),
+
+      courseProgress: {},
+      setCourseProgress: (courseId, completedLessons) =>
+        set((state) => ({
+          courseProgress: {
+            ...state.courseProgress,
+            [courseId]: {
+              completedLessons,
+              lastAccessed: Date.now(),
+            },
+          },
+        })),
+      getCourseProgress: (courseId) => {
+        const progress = get().courseProgress[courseId];
+        return progress?.completedLessons ?? [];
+      },
     }),
     {
       name: "firstcode-forge-store",
       partialize: (state) => ({
         profile: state.profile,
         challenge: state.challenge,
+        courseProgress: state.courseProgress,
       }),
     },
   ),

@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -281,8 +282,24 @@ function Section({
 }
 
 export default function FlutterAdvancedPage() {
+  const courseId = "flutter-advanced";
+  const { getCourseProgress, setCourseProgress } = useAppStore();
+
   const [currentLesson, setCurrentLesson] = useState(0);
-  const [completedLessons, setCompletedLessons] = useState<number[]>([]);
+  // Initialize from store with lazy initializer (SSR safe)
+  const [completedLessons, setCompletedLessons] = useState<number[]>(() => {
+    if (typeof window !== "undefined") {
+      return getCourseProgress(courseId);
+    }
+    return [];
+  });
+
+  // Persist progress when it changes
+  useEffect(() => {
+    if (completedLessons.length > 0) {
+      setCourseProgress(courseId, completedLessons);
+    }
+  }, [completedLessons, setCourseProgress]);
 
   const lesson = lessonContent[currentLesson];
 
@@ -298,6 +315,13 @@ export default function FlutterAdvancedPage() {
   const goPrev = () => {
     if (currentLesson > 0) {
       setCurrentLesson(currentLesson - 1);
+    }
+  };
+
+  const finishCourse = () => {
+    // Mark the last lesson as complete
+    if (!completedLessons.includes(currentLesson)) {
+      setCompletedLessons([...completedLessons, currentLesson]);
     }
   };
 
@@ -400,8 +424,9 @@ export default function FlutterAdvancedPage() {
           </div>
 
           <Button
-            onClick={goNext}
-            disabled={currentLesson === lessonContent.length - 1}
+            onClick={
+              currentLesson === lessonContent.length - 1 ? finishCourse : goNext
+            }
             glow
             className="gap-2"
           >
