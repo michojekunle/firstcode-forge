@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { createClient } from "@supabase/supabase-js";
 
-// // Initialize Supabase client (only if env vars are set)
-// const supabaseUrl = process.env.SUPABASE_URL;
-// const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
-// const supabase =
-//   supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+// Initialize Supabase client (only if env vars are set)
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+const supabase =
+  supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 // Email configuration
 const transporter = nodemailer.createTransport({
@@ -32,21 +32,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // // Store in Supabase if configured
-    // if (supabase) {
-    //   const { error: dbError } = await supabase.from("course_requests").insert({
-    //     name,
-    //     email,
-    //     course_topic: courseTopic,
-    //     details: details || null,
-    //     created_at: new Date().toISOString(),
-    //   });
+    // Store in Supabase if configured
+    if (supabase) {
+      const { error: dbError } = await supabase.from("course_requests").insert({
+        name,
+        email,
+        course_topic: courseTopic,
+        details: details || null,
+        created_at: new Date().toISOString(),
+      });
 
-    //   if (dbError) {
-    //     console.error("Supabase error:", dbError);
-    //     // Continue even if DB fails - we'll still send email
-    //   }
-    // }
+      if (dbError) {
+        console.error("Supabase error:", dbError);
+        // Continue even if DB fails - we'll still send email
+      }
+    }
 
     // Send email notification
     const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;

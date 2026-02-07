@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://firstcodeforge.com/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Block admin/api routes from indexing
+Disallow: /api/
+Disallow: /onboarding
+Disallow: /dashboard
