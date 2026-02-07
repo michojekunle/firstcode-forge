@@ -9,14 +9,14 @@
    CSS CUSTOM PROPERTIES (Design Tokens)
    -------------------------------------------------------------------------- */
 :root {
-  /* Colors - Light Mode */
-  --background: #FAFAFA;
-  --foreground: #0A0A0A;
-  --muted: #F4F4F5;
-  --muted-foreground: #71717A;
-  --border: #E4E4E7;
+  /* Colors - Light Mode (softer, easier on eyes) */
+  --background: #F8FAFC;
+  --foreground: #1E293B;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --border: #E2E8F0;
   --card: #FFFFFF;
-  --card-foreground: #0A0A0A;
+  --card-foreground: #1E293B;
 
   /* Signature Green - The extraordinary accent */
   --primary: #00E676;
@@ -25,12 +25,21 @@
   --primary-foreground: #0A0A0A;
 
   /* Secondary */
-  --secondary: #18181B;
-  --secondary-foreground: #FAFAFA;
+  --secondary: #334155;
+  --secondary-foreground: #F8FAFC;
 
   /* Semantic */
   --destructive: #EF4444;
   --success: #22C55E;
+
+  /* Code Syntax Highlighting - Light Mode */
+  --code-keyword: #7C3AED;
+  --code-string: #059669;
+  --code-number: #EA580C;
+  --code-comment: #94A3B8;
+  --code-function: #2563EB;
+  --code-class: #CA8A04;
+  --code-annotation: #0891B2;
 
   /* Radii */
   --radius: 0.75rem;
@@ -58,6 +67,15 @@
   /* Secondary */
   --secondary: #27272A;
   --secondary-foreground: #FAFAFA;
+
+  /* Code Syntax Highlighting - Dark Mode */
+  --code-keyword: #C084FC;
+  --code-string: #34D399;
+  --code-number: #FB923C;
+  --code-comment: #6B7280;
+  --code-function: #60A5FA;
+  --code-class: #FCD34D;
+  --code-annotation: #22D3EE;
 }
 
 /* --------------------------------------------------------------------------
@@ -243,4 +261,36 @@ h6 {
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* --------------------------------------------------------------------------
+   CODE SYNTAX HIGHLIGHTING
+   -------------------------------------------------------------------------- */
+.code-keyword {
+  color: var(--code-keyword);
+}
+
+.code-string {
+  color: var(--code-string);
+}
+
+.code-number {
+  color: var(--code-number);
+}
+
+.code-comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.code-function {
+  color: var(--code-function);
+}
+
+.code-class {
+  color: var(--code-class);
+}
+
+.code-annotation {
+  color: var(--code-annotation);
 }

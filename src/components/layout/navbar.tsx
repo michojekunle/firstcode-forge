@@ -4,8 +4,9 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/providers/theme-provider";
+import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu, X } from "lucide-react";
+import { Sun, Moon, Menu, X, User, LogOut } from "lucide-react";
 import { useState } from "react";
 
 const navLinks = [
@@ -16,7 +17,9 @@ const navLinks = [
 
 export function Navbar() {
   const { resolvedTheme, setTheme } = useTheme();
+  const { user, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
@@ -38,7 +41,6 @@ export function Navbar() {
               transition={{ duration: 0.6, ease: "easeInOut" }}
               className="flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden"
             >
-              {/* Custom logo SVG inline */}
               <svg
                 width="40"
                 height="40"
@@ -124,11 +126,79 @@ export function Navbar() {
               )}
             </motion.button>
 
-            <Link href="/onboarding">
-              <Button size="sm" className="hidden md:inline-flex">
-                Get Started
-              </Button>
-            </Link>
+            {/* Conditional: Profile or Get Started */}
+            {user ? (
+              <div className="relative hidden md:block">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground"
+                >
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full"
+                    />
+                  ) : (
+                    <User className="h-5 w-5" />
+                  )}
+                </motion.button>
+
+                {/* Profile dropdown */}
+                {showProfileMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden"
+                  >
+                    <div className="px-4 py-3 border-b border-border">
+                      <p className="font-medium truncate">
+                        {user.user_metadata?.full_name ||
+                          user.email?.split("@")[0]}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                    <div className="py-1">
+                      <Link
+                        href="/dashboard"
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        <User className="w-4 h-4" />
+                        Dashboard
+                      </Link>
+                      <Link
+                        href="/challenges?tab=my"
+                        className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
+                        onClick={() => setShowProfileMenu(false)}
+                      >
+                        My Challenges
+                      </Link>
+                      <button
+                        onClick={() => {
+                          signOut();
+                          setShowProfileMenu(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors text-red-500"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            ) : (
+              <Link href="/learn">
+                <Button size="sm" className="hidden md:inline-flex">
+                  Get Started
+                </Button>
+              </Link>
+            )}
 
             {/* Mobile menu toggle */}
             <motion.button
@@ -168,11 +238,32 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Link href="/onboarding" className="mt-2">
-              <Button size="sm" className="w-full">
-                Get Started
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => {
+                    signOut();
+                    setIsOpen(false);
+                  }}
+                  className="px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-muted text-left"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link href="/learn" className="mt-2">
+                <Button size="sm" className="w-full">
+                  Get Started
+                </Button>
+              </Link>
+            )}
           </div>
         </motion.div>
       </nav>

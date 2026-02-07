@@ -118,6 +118,41 @@ const courses = [
       { icon: "🔒", label: "Ship Reliably" },
     ],
   },
+  {
+    id: "dsa-fundamentals",
+    title: "DSA Fundamentals",
+    subtitle: "Master Data Structures & Algorithms",
+    description:
+      "Learn Big O notation, arrays, linked lists, trees, graphs, sorting, and searching algorithms from first principles.",
+    icon: "🧠",
+    gradient: "from-yellow-500 via-orange-500 to-red-500",
+    bgGradient:
+      "bg-gradient-to-br from-yellow-500/10 via-orange-500/5 to-transparent",
+    concepts: [
+      "Big O Notation",
+      "Arrays & Linked Lists",
+      "Trees & Graphs",
+      "Sorting Algorithms",
+    ],
+    stats: { duration: "8 weeks", students: "2.1k", rating: "4.9" },
+    previewCode: `// Binary Search - O(log n)
+function search(arr, target) {
+  let left = 0, right = arr.length - 1;
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    if (arr[mid] === target) return mid;
+    if (arr[mid] < target) left = mid + 1;
+    else right = mid - 1;
+  }
+  return -1;
+}`,
+    flowSteps: [
+      { icon: "📊", label: "Big O" },
+      { icon: "📦", label: "Data Structures" },
+      { icon: "🔍", label: "Algorithms" },
+      { icon: "🎯", label: "Solve Problems" },
+    ],
+  },
 ];
 
 // Animated flow arrow component
