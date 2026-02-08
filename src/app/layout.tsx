@@ -22,7 +22,7 @@ const inter = Inter({
 });
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://firstcodeforge.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://firstcodeforge.vercel.app";
 
 export const viewport: Viewport = {
   width: "device-width",
