@@ -1,9 +1,11 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useAuth } from "@/components/providers/auth-provider";
+import { LikeButton } from "@/components/social/LikeButton";
 import {
   Sparkles,
   Code2,
@@ -15,85 +17,34 @@ import {
   Github,
   LogIn,
   Lock,
-  Play,
   Star,
-  ChevronDown,
+  Filter,
+  Loader2,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
-// Sample challenges data (will be replaced with Supabase data later)
-const challenges = [
-  {
-    id: "counter-app",
-    title: "Build a Counter App",
-    description:
-      "Create a simple counter application with increment, decrement, and reset functionality. Learn state management fundamentals.",
-    difficulty: "easy" as const,
-    language: "Flutter",
-    estimatedTime: "30 mins",
-    skills: ["StatefulWidget", "setState", "Button Actions"],
-    completions: 234,
-    rating: 4.8,
-    emoji: "🔢",
-    gradient: "from-green-500/20 to-emerald-500/20",
-  },
-  {
-    id: "todo-list",
-    title: "Todo List with Persistence",
-    description:
-      "Build a full-featured todo list that persists data locally. Add, edit, complete, and delete tasks with smooth animations.",
-    difficulty: "medium" as const,
-    language: "Flutter",
-    estimatedTime: "2 hours",
-    skills: ["SharedPreferences", "ListView", "CRUD Operations"],
-    completions: 156,
-    rating: 4.9,
-    emoji: "✅",
-    gradient: "from-yellow-500/20 to-orange-500/20",
-  },
-  {
-    id: "weather-app",
-    title: "Weather Dashboard",
-    description:
-      "Create a beautiful weather app that fetches real-time data from an API. Display current conditions and forecasts.",
-    difficulty: "medium" as const,
-    language: "Flutter",
-    estimatedTime: "3 hours",
-    skills: ["HTTP Requests", "JSON Parsing", "Async/Await"],
-    completions: 98,
-    rating: 4.7,
-    emoji: "🌤️",
-    gradient: "from-blue-500/20 to-cyan-500/20",
-  },
-  {
-    id: "chat-ui",
-    title: "Real-time Chat Interface",
-    description:
-      "Build a chat UI with message bubbles, animations, and keyboard handling. Focus on performance with long lists.",
-    difficulty: "hard" as const,
-    language: "Flutter",
-    estimatedTime: "4 hours",
-    skills: ["CustomScrollView", "Animations", "Performance"],
-    completions: 45,
-    rating: 4.9,
-    emoji: "💬",
-    gradient: "from-purple-500/20 to-pink-500/20",
-  },
-  {
-    id: "system-design-url",
-    title: "Design a URL Shortener",
-    description:
-      "Think through the architecture of a URL shortening service like bit.ly. Consider scale, storage, and caching.",
-    difficulty: "hard" as const,
-    language: "Systems Design",
-    estimatedTime: "1 hour",
-    skills: ["Databases", "Caching", "Load Balancing"],
-    completions: 67,
-    rating: 4.8,
-    emoji: "🔗",
-    gradient: "from-rose-500/20 to-red-500/20",
-  },
-];
+interface FeedChallenge {
+  id: string;
+  course_id: string;
+  user_id: string;
+  user_name: string;
+  user_avatar?: string;
+  title: string;
+  description: string;
+  difficulty: "easy" | "medium" | "hard";
+  skills: string[];
+  steps: string[];
+  estimated_time?: string;
+  project_type?: string;
+  is_public: boolean;
+  likes_count: number;
+  submissions_count: number;
+  comments_count: number;
+  is_liked?: boolean;
+  created_at: string;
+}
 
 const difficultyConfig = {
   easy: { color: "text-green-500", bg: "bg-green-500/10", label: "Beginner" },
@@ -105,24 +56,55 @@ const difficultyConfig = {
   hard: { color: "text-red-500", bg: "bg-red-500/10", label: "Advanced" },
 };
 
+const courseLabels: Record<string, { label: string; emoji: string }> = {
+  "flutter-fundamentals": { label: "Flutter Fundamentals", emoji: "📱" },
+  "flutter-advanced": { label: "Flutter Advanced", emoji: "🚀" },
+  "dsa-fundamentals": { label: "DSA Fundamentals", emoji: "🧮" },
+  "systems-design": { label: "Systems Design", emoji: "🏗️" },
+};
+
+const projectTypeEmojis: Record<string, string> = {
+  app: "📱",
+  tool: "🔧",
+  system: "🏗️",
+  game: "🎮",
+  Algorithm: "🧮",
+  "Mobile App": "📱",
+  "System Design": "🏗️",
+  Creative: "🎨",
+};
+
+function formatTimeAgo(dateStr: string): string {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
 // Sign-in banner for unauthenticated users
 function SignInBanner({ onSignIn }: { onSignIn: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
+      className="p-4 rounded-xl border border-primary/20 bg-primary/5 flex items-center justify-between gap-4 mb-8"
     >
-      <div className="glass rounded-2xl px-6 py-4 flex items-center gap-4 shadow-xl border border-primary/20">
-        <div className="flex items-center gap-2 text-primary">
-          <Lock className="w-5 h-5" />
-          <span className="font-medium">Sign in to track your progress</span>
-        </div>
-        <Button size="sm" onClick={onSignIn} glow>
-          <LogIn className="w-4 h-4 mr-2" />
-          Sign In
-        </Button>
+      <div className="flex items-center gap-3">
+        <Lock className="w-5 h-5 text-primary" />
+        <p className="text-sm">
+          <span className="font-medium">Sign in</span> to start challenges,
+          submit solutions, and interact with the community
+        </p>
       </div>
+      <Button size="sm" onClick={onSignIn} className="shrink-0 gap-1.5">
+        <LogIn className="w-4 h-4" />
+        Sign In
+      </Button>
     </motion.div>
   );
 }
@@ -147,304 +129,399 @@ function AuthModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
         onClick={onClose}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-card rounded-2xl p-8 max-w-md w-full border border-border shadow-2xl"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.95, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
+          className="w-full max-w-sm mx-4 p-6 bg-card border border-border rounded-2xl shadow-2xl"
         >
-          <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.1 }}
-              className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center"
-            >
-              <Sparkles className="w-8 h-8 text-primary" />
-            </motion.div>
-            <h2 className="text-2xl font-bold mb-2">Welcome to Challenges</h2>
-            <p className="text-muted-foreground">
-              Sign in to start challenges, track progress, and share your
-              solutions.
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+              <Sparkles className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="text-lg font-bold">Sign in to continue</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Create challenges, submit solutions, and join the community
             </p>
           </div>
 
           <div className="space-y-3">
             <Button
-              className="w-full gap-2"
               variant="outline"
+              className="w-full gap-2"
               onClick={onGithub}
             >
-              <Github className="w-5 h-5" />
+              <Github className="w-4 h-4" />
               Continue with GitHub
             </Button>
             <Button
-              className="w-full gap-2"
               variant="outline"
+              className="w-full gap-2"
               onClick={onGoogle}
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
-                  fill="currentColor"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                  fill="#4285F4"
                 />
                 <path
-                  fill="currentColor"
                   d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
                 />
                 <path
-                  fill="currentColor"
                   d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
                 />
                 <path
-                  fill="currentColor"
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
                 />
               </svg>
               Continue with Google
             </Button>
           </div>
-
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            By signing in, you agree to our Terms of Service
-          </p>
         </motion.div>
       </motion.div>
     </AnimatePresence>
   );
 }
 
-// Individual challenge card - takes full viewport
+// Challenge card component
 function ChallengeCard({
   challenge,
   index,
-  isAuthenticated,
-  onStartChallenge,
+  userId,
 }: {
-  challenge: (typeof challenges)[0];
+  challenge: FeedChallenge;
   index: number;
-  isAuthenticated: boolean;
-  onStartChallenge: () => void;
+  userId?: string;
 }) {
-  const difficulty = difficultyConfig[challenge.difficulty];
+  const diff = difficultyConfig[challenge.difficulty];
+  const course = courseLabels[challenge.course_id];
+  const emoji =
+    projectTypeEmojis[challenge.project_type || ""] || course?.emoji || "🎯";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.6, delay: 0.1 }}
-      className="min-h-[600px] max-h-[900px] h-[90vh] flex items-center justify-center px-4 py-8 snap-start"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
     >
-      <div
-        className={`w-full max-w-2xl p-8 md:p-12 rounded-3xl bg-gradient-to-br ${challenge.gradient} border border-border relative overflow-hidden`}
-      >
-        {/* Background decoration */}
-        <div className="absolute -right-10 -top-10 text-[120px] opacity-10 rotate-12">
-          {challenge.emoji}
-        </div>
-
-        {/* Difficulty badge */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${difficulty.bg} ${difficulty.color} text-sm font-bold mb-6`}
+      <Link href={`/challenges/${challenge.id}`}>
+        <Card
+          hover
+          className="p-5 h-full group transition-all duration-300 hover:border-primary/30"
         >
-          <Zap className="w-4 h-4" />
-          {difficulty.label}
-        </motion.div>
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{emoji}</span>
+              <div>
+                <h3 className="font-bold text-base group-hover:text-primary transition-colors line-clamp-1">
+                  {challenge.title}
+                </h3>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span
+                    className={cn(
+                      "text-xs font-medium px-2 py-0.5 rounded-full",
+                      diff.bg,
+                      diff.color,
+                    )}
+                  >
+                    {diff.label}
+                  </span>
+                  {course && (
+                    <span className="text-xs text-muted-foreground">
+                      {course.emoji} {course.label}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Title */}
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          {challenge.title}
-        </h2>
+          {/* Description */}
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+            {challenge.description}
+          </p>
 
-        {/* Description */}
-        <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-          {challenge.description}
-        </p>
+          {/* Skills */}
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {challenge.skills?.slice(0, 4).map((skill) => (
+              <span
+                key={skill}
+                className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
 
-        {/* Skills */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {challenge.skills.map((skill, i) => (
-            <motion.span
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 + i * 0.1 }}
-              className="px-3 py-1.5 rounded-lg bg-background/50 text-sm font-medium border border-border"
-            >
-              {skill}
-            </motion.span>
-          ))}
-        </div>
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-3 border-t border-border">
+            <div className="flex items-center gap-4">
+              <div onClick={(e) => e.preventDefault()}>
+                <LikeButton
+                  initialCount={challenge.likes_count}
+                  isLiked={challenge.is_liked}
+                  targetType="challenge"
+                  targetId={challenge.id}
+                  userId={userId}
+                  size="sm"
+                />
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>{challenge.comments_count}</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Code2 className="w-3.5 h-3.5" />
+                <span>{challenge.submissions_count} submissions</span>
+              </div>
+            </div>
 
-        {/* Stats row */}
-        <div className="flex flex-wrap items-center gap-6 mb-8 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            {challenge.estimatedTime}
-          </span>
-          <span className="flex items-center gap-1">
-            <Code2 className="w-4 h-4" />
-            {challenge.language}
-          </span>
-          <span className="flex items-center gap-1">
-            <Trophy className="w-4 h-4" />
-            {challenge.completions} completed
-          </span>
-          <span className="flex items-center gap-1 text-yellow-500">
-            <Star className="w-4 h-4 fill-current" />
-            {challenge.rating}
-          </span>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex flex-wrap gap-4">
-          <Button size="lg" glow className="group" onClick={onStartChallenge}>
-            <Play className="w-5 h-5 mr-2" />
-            {isAuthenticated ? "Start Challenge" : "Sign In to Start"}
-          </Button>
-          <Link href={`/challenges/${challenge.id}`}>
-            <Button size="lg" variant="outline" className="group">
-              View Details
-              <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
-            </Button>
-          </Link>
-        </div>
-      </div>
+            {/* Author */}
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[10px] font-bold text-primary">
+                {challenge.user_name?.charAt(0)?.toUpperCase() || "?"}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {challenge.user_name} · {formatTimeAgo(challenge.created_at)}
+              </span>
+            </div>
+          </div>
+        </Card>
+      </Link>
     </motion.div>
   );
 }
 
 export default function ChallengesPage() {
-  const { user, isLoading, signInWithGithub, signInWithGoogle } = useAuth();
+  const { user, signInWithGithub, signInWithGoogle } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [challenges, setChallenges] = useState<FeedChallenge[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [courseFilter, setCourseFilter] = useState("all");
+  const [feedFilter, setFeedFilter] = useState<"all" | "mine">("all");
 
-  const handleStartChallenge = () => {
-    if (!user) {
-      setShowAuthModal(true);
+  const fetchFeed = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (courseFilter !== "all") params.set("course", courseFilter);
+      if (feedFilter === "mine" && user) {
+        params.set("filter", "mine");
+        params.set("userId", user.id);
+      }
+      if (user) params.set("userId", user.id);
+
+      const res = await fetch(`/api/challenges/feed?${params.toString()}`);
+      const data = await res.json();
+      setChallenges(data.challenges || []);
+    } catch (error) {
+      console.error("Failed to load feed:", error);
+    } finally {
+      setLoading(false);
     }
-    // If authenticated, would navigate to challenge
-  };
+  }, [courseFilter, feedFilter, user]);
+
+  useEffect(() => {
+    fetchFeed();
+  }, [fetchFeed]);
 
   return (
-    <div className="min-h-screen">
-      {/* Hero section */}
-      <section className="relative min-h-[60vh] flex items-center justify-center pt-24 pb-8 px-4">
-        {/* Background */}
-        <div className="absolute inset-0 -z-10">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute top-1/3 left-1/4 w-[400px] h-[400px] rounded-full bg-primary/10 blur-[150px]"
-          />
-        </div>
+    <div className="min-h-screen pt-24 pb-16 px-4">
+      <div className="mx-auto max-w-5xl">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Trophy className="w-6 h-6 text-yellow-500" />
+            <h1 className="text-3xl md:text-4xl font-bold">Challenge Feed</h1>
+          </div>
+          <p className="text-muted-foreground max-w-lg mx-auto">
+            AI-generated challenges from the community. Complete a course to get
+            your own, then see what others built.
+          </p>
+        </motion.div>
 
-        <div className="max-w-3xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-2"
-          >
-            <Trophy className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">
-              Coding Challenges
-            </span>
-          </motion.div>
+        {/* Sign-in banner */}
+        {!user && <SignInBanner onSignIn={() => setShowAuthModal(true)} />}
 
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-5xl md:text-6xl font-bold mb-6"
-          >
-            Learn by <span className="text-gradient-primary">Building</span>
-          </motion.h1>
+        {/* Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex flex-wrap items-center gap-3 mb-6"
+        >
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Filter className="w-4 h-4" />
+            <span className="font-medium">Filter:</span>
+          </div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg text-muted-foreground max-w-xl mx-auto mb-8"
-          >
-            Hands-on coding challenges designed to reinforce first-principles
-            thinking. Build real projects and share your solutions.
-          </motion.p>
-
-          {user && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                {user.user_metadata?.avatar_url ? (
-                  <img
-                    src={user.user_metadata.avatar_url}
-                    alt=""
-                    className="w-8 h-8 rounded-full"
-                  />
-                ) : (
-                  <Users className="w-4 h-4 text-primary" />
+          {/* Feed filter */}
+          <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5">
+            {(["all", "mine"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFeedFilter(f)}
+                disabled={f === "mine" && !user}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                  feedFilter === f
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                  f === "mine" && !user && "opacity-50 cursor-not-allowed",
                 )}
-              </div>
-              Welcome back, {user.user_metadata?.name || user.email}
-            </motion.div>
-          )}
+              >
+                {f === "all" ? "All Challenges" : "My Challenges"}
+              </button>
+            ))}
+          </div>
 
-          {/* Scroll indicator */}
+          {/* Course filter */}
+          <div className="flex gap-1 bg-muted/50 rounded-lg p-0.5 overflow-x-auto">
+            <button
+              onClick={() => setCourseFilter("all")}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-xs font-medium transition-all shrink-0",
+                courseFilter === "all"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              All Courses
+            </button>
+            {Object.entries(courseLabels).map(([key, { label, emoji }]) => (
+              <button
+                key={key}
+                onClick={() => setCourseFilter(key)}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-xs font-medium transition-all shrink-0",
+                  courseFilter === key
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {emoji} {label}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Stats bar */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="flex items-center gap-6 mb-6 text-sm text-muted-foreground"
+        >
+          <div className="flex items-center gap-1.5">
+            <Zap className="w-4 h-4 text-yellow-500" />
+            <span>{challenges.length} challenges</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Users className="w-4 h-4 text-primary" />
+            <span>
+              {challenges.reduce((s, c) => s + c.submissions_count, 0)} total
+              submissions
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Star className="w-4 h-4 text-orange-500" />
+            <span>
+              {challenges.reduce((s, c) => s + c.likes_count, 0)} likes
+            </span>
+          </div>
+        </motion.div>
+
+        {/* Challenge grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : challenges.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-12 flex flex-col items-center gap-2"
+            className="text-center py-20"
           >
-            <span className="text-sm text-muted-foreground">
-              Scroll to explore
-            </span>
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
-            </motion.div>
+            <Sparkles className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No challenges yet</h3>
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-4">
+              Complete a course to generate your first AI challenge. It will
+              appear here for everyone to see and attempt.
+            </p>
+            <Link href="/learn">
+              <Button glow className="gap-1.5">
+                Browse Courses
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
           </motion.div>
-        </div>
-      </section>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {challenges.map((challenge, i) => (
+              <ChallengeCard
+                key={challenge.id}
+                challenge={challenge}
+                index={i}
+                userId={user?.id}
+              />
+            ))}
+          </div>
+        )}
 
-      {/* Challenges list with scroll snap */}
-      <div className="snap-y snap-mandatory">
-        {challenges.map((challenge, index) => (
-          <ChallengeCard
-            key={challenge.id}
-            challenge={challenge}
-            index={index}
-            isAuthenticated={!!user}
-            onStartChallenge={handleStartChallenge}
-          />
-        ))}
+        {/* CTA for completing courses */}
+        {challenges.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-12 text-center"
+          >
+            <Card
+              hover={false}
+              className="p-6 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20 inline-block"
+            >
+              <div className="flex items-center gap-3">
+                <Clock className="w-5 h-5 text-primary" />
+                <p className="text-sm">
+                  <span className="font-medium">Want your own challenge?</span>{" "}
+                  Complete any course to get a personalized AI challenge.
+                </p>
+                <Link href="/learn">
+                  <Button size="sm" variant="outline" className="gap-1.5 ml-2">
+                    Browse Courses
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          </motion.div>
+        )}
       </div>
-
-      {/* Sign in banner for unauthenticated users */}
-      {!isLoading && !user && (
-        <SignInBanner onSignIn={() => setShowAuthModal(true)} />
-      )}
 
       {/* Auth modal */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onGithub={signInWithGithub}
-        onGoogle={signInWithGoogle}
+        onGithub={() => {
+          setShowAuthModal(false);
+          signInWithGithub();
+        }}
+        onGoogle={() => {
+          setShowAuthModal(false);
+          signInWithGoogle();
+        }}
       />
     </div>
   );

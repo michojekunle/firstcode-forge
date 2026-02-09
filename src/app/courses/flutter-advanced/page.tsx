@@ -37,6 +37,10 @@ import { DeeperDive } from "@/components/learning/DeeperDive";
 import { RealWorldExample } from "@/components/learning/RealWorldExample";
 import { ReturnQuizPopup } from "@/components/learning/ReturnQuizPopup";
 import { useReturnQuiz } from "@/hooks/useReturnQuiz";
+import {
+  PostCourseSurvey,
+  type SurveyResult,
+} from "@/components/learning/PostCourseSurvey";
 
 // ============================================
 // LESSON DATA - Flutter Advanced
@@ -1028,6 +1032,7 @@ export default function FlutterAdvancedPage() {
     difficulty: string;
     steps: string[];
   }>(null);
+  const [showSurvey, setShowSurvey] = useState(false);
 
   // Course stats
   const stats = { rating: 4.8, students: 1200 };
@@ -1070,7 +1075,7 @@ export default function FlutterAdvancedPage() {
     setRatingSubmitted(true);
   };
 
-  const generateChallenge = async () => {
+  const generateChallenge = async (surveyData?: SurveyResult) => {
     try {
       const response = await fetch("/api/challenges/generate", {
         method: "POST",
@@ -1078,7 +1083,12 @@ export default function FlutterAdvancedPage() {
         body: JSON.stringify({
           courseId,
           userId: user?.id,
-          userSurvey: profile,
+          userName:
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
+            "Anonymous",
+          userAvatar: user?.user_metadata?.avatar_url || null,
+          userSurvey: surveyData || profile,
         }),
       });
       const data = await response.json();
@@ -1088,6 +1098,11 @@ export default function FlutterAdvancedPage() {
     } catch (error) {
       console.error("Failed to generate challenge:", error);
     }
+  };
+
+  const handleSurveyComplete = (result: SurveyResult) => {
+    setShowSurvey(false);
+    generateChallenge(result);
   };
 
   const renderLessonContent = () => {
@@ -1106,7 +1121,7 @@ export default function FlutterAdvancedPage() {
         return (
           <Lesson5
             onRatingSubmit={handleRatingSubmit}
-            onGenerateChallenge={generateChallenge}
+            onGenerateChallenge={() => setShowSurvey(true)}
             showRating={showRating}
             ratingSubmitted={ratingSubmitted}
           />
@@ -1132,6 +1147,18 @@ export default function FlutterAdvancedPage() {
           question={quizQuestion}
           onDismiss={dismissQuiz}
           onComplete={completeQuiz}
+        />
+      )}
+
+      {/* PostCourseSurvey Modal */}
+      {showSurvey && (
+        <PostCourseSurvey
+          courseTitle="Flutter Advanced"
+          onComplete={handleSurveyComplete}
+          onDismiss={() => {
+            setShowSurvey(false);
+            generateChallenge();
+          }}
         />
       )}
       <div className="mx-auto max-w-4xl">
@@ -1264,7 +1291,10 @@ export default function FlutterAdvancedPage() {
                     <Link href="/challenges">
                       <Button glow>Start Challenge</Button>
                     </Link>
-                    <Button variant="outline" onClick={generateChallenge}>
+                    <Button
+                      variant="outline"
+                      onClick={() => generateChallenge()}
+                    >
                       Generate Another
                     </Button>
                   </div>

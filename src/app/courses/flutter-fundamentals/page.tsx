@@ -41,6 +41,10 @@ import { DeeperDive } from "@/components/learning/DeeperDive";
 import { RealWorldExample } from "@/components/learning/RealWorldExample";
 import { ReturnQuizPopup } from "@/components/learning/ReturnQuizPopup";
 import { useReturnQuiz } from "@/hooks/useReturnQuiz";
+import {
+  PostCourseSurvey,
+  type SurveyResult,
+} from "@/components/learning/PostCourseSurvey";
 
 // ============================================
 // LESSON DATA - Immersive content structure
@@ -1095,6 +1099,7 @@ export default function FlutterFundamentalsPage() {
   }>(null);
   const [showRating, setShowRating] = useState(false);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [showSurvey, setShowSurvey] = useState(false);
 
   // Course stats (would come from API in production)
   const stats = { rating: 4.9, students: 2400 };
@@ -1128,7 +1133,7 @@ export default function FlutterFundamentalsPage() {
     }
   };
 
-  const generateChallenge = async () => {
+  const generateChallenge = async (surveyData?: SurveyResult) => {
     try {
       const response = await fetch("/api/challenges/generate", {
         method: "POST",
@@ -1136,7 +1141,12 @@ export default function FlutterFundamentalsPage() {
         body: JSON.stringify({
           courseId,
           userId: user?.id,
-          userSurvey: profile,
+          userName:
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
+            "Anonymous",
+          userAvatar: user?.user_metadata?.avatar_url || null,
+          userSurvey: surveyData || profile,
         }),
       });
       const data = await response.json();
@@ -1146,6 +1156,11 @@ export default function FlutterFundamentalsPage() {
     } catch (error) {
       console.error("Failed to generate challenge:", error);
     }
+  };
+
+  const handleSurveyComplete = (result: SurveyResult) => {
+    setShowSurvey(false);
+    generateChallenge(result);
   };
 
   const handleRatingSubmit = (rating: number, feedback: string) => {
@@ -1170,7 +1185,7 @@ export default function FlutterFundamentalsPage() {
       case 5:
         return (
           <Lesson5
-            onGenerateChallenge={generateChallenge}
+            onGenerateChallenge={() => setShowSurvey(true)}
             onRatingSubmit={handleRatingSubmit}
             showRating={currentLesson === 5}
             ratingSubmitted={ratingSubmitted}
@@ -1197,6 +1212,18 @@ export default function FlutterFundamentalsPage() {
           question={quizQuestion}
           onDismiss={dismissQuiz}
           onComplete={completeQuiz}
+        />
+      )}
+
+      {/* PostCourseSurvey Modal */}
+      {showSurvey && (
+        <PostCourseSurvey
+          courseTitle="Flutter Fundamentals"
+          onComplete={handleSurveyComplete}
+          onDismiss={() => {
+            setShowSurvey(false);
+            generateChallenge();
+          }}
         />
       )}
       <div className="mx-auto max-w-4xl">
@@ -1329,7 +1356,10 @@ export default function FlutterFundamentalsPage() {
                     <Link href="/challenges">
                       <Button glow>Start Challenge</Button>
                     </Link>
-                    <Button variant="outline" onClick={generateChallenge}>
+                    <Button
+                      variant="outline"
+                      onClick={() => generateChallenge()}
+                    >
                       Generate Another
                     </Button>
                   </div>

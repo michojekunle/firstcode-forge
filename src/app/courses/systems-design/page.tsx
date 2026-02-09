@@ -39,6 +39,10 @@ import { DeeperDive } from "@/components/learning/DeeperDive";
 import { RealWorldExample } from "@/components/learning/RealWorldExample";
 import { ReturnQuizPopup } from "@/components/learning/ReturnQuizPopup";
 import { useReturnQuiz } from "@/hooks/useReturnQuiz";
+import {
+  PostCourseSurvey,
+  type SurveyResult,
+} from "@/components/learning/PostCourseSurvey";
 
 // ============================================
 // LESSON DATA
@@ -1008,6 +1012,7 @@ export default function SystemsDesignPage() {
     difficulty: string;
     steps: string[];
   }>(null);
+  const [showSurvey, setShowSurvey] = useState(false);
 
   const stats = { rating: 4.9, students: 945 };
 
@@ -1040,7 +1045,7 @@ export default function SystemsDesignPage() {
     }
   };
 
-  const generateChallenge = async () => {
+  const generateChallenge = async (surveyData?: SurveyResult) => {
     setGeneratingChallenge(true);
     try {
       const response = await fetch("/api/challenges/generate", {
@@ -1049,7 +1054,12 @@ export default function SystemsDesignPage() {
         body: JSON.stringify({
           courseId,
           userId: user?.id,
-          userSurvey: profile,
+          userName:
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
+            "Anonymous",
+          userAvatar: user?.user_metadata?.avatar_url || null,
+          userSurvey: surveyData || profile,
         }),
       });
       const data = await response.json();
@@ -1061,6 +1071,11 @@ export default function SystemsDesignPage() {
     } finally {
       setGeneratingChallenge(false);
     }
+  };
+
+  const handleSurveyComplete = (result: SurveyResult) => {
+    setShowSurvey(false);
+    generateChallenge(result);
   };
 
   const renderLessonContent = () => {
@@ -1076,7 +1091,7 @@ export default function SystemsDesignPage() {
       case 4:
         return <Lesson4 />;
       case 5:
-        return <Lesson5 onGenerateChallenge={generateChallenge} />;
+        return <Lesson5 onGenerateChallenge={() => setShowSurvey(true)} />;
       default:
         return <Lesson0 />;
     }
@@ -1098,6 +1113,18 @@ export default function SystemsDesignPage() {
           question={quizQuestion}
           onDismiss={dismissQuiz}
           onComplete={completeQuiz}
+        />
+      )}
+
+      {/* PostCourseSurvey Modal */}
+      {showSurvey && (
+        <PostCourseSurvey
+          courseTitle="Systems Design"
+          onComplete={handleSurveyComplete}
+          onDismiss={() => {
+            setShowSurvey(false);
+            generateChallenge();
+          }}
         />
       )}
       <div className="mx-auto max-w-4xl">
@@ -1230,7 +1257,10 @@ export default function SystemsDesignPage() {
                     <Link href="/challenges">
                       <Button glow>Start Challenge</Button>
                     </Link>
-                    <Button variant="outline" onClick={generateChallenge}>
+                    <Button
+                      variant="outline"
+                      onClick={() => generateChallenge()}
+                    >
                       Generate Another
                     </Button>
                   </div>

@@ -66,15 +66,20 @@ function getOpenAI(): OpenAI | null {
   });
 }
 
+// Survey can be old format or new PostCourseSurvey format
+interface SurveyInput {
+  experienceLevel?: string;
+  interests?: string[];
+  goals?: string[];
+  learningStyle?: string;
+  buildIdea?: string;
+  confidence?: number;
+}
+
 // Generate a unique challenge based on course and survey
 async function generateChallengeWithAI(
   courseId: string,
-  userSurvey: {
-    experienceLevel: string;
-    interests: string[];
-    goals: string[];
-    learningStyle: string;
-  },
+  userSurvey: SurveyInput,
 ): Promise<ChallengeResponse | null> {
   const openai = getOpenAI();
   if (!openai) return null;
@@ -92,13 +97,29 @@ async function generateChallengeWithAI(
     .sort(() => Math.random() - 0.5)
     .slice(0, 3);
 
+  // Map confidence to difficulty
+  const confidenceLevel = userSurvey.confidence || 3;
+  const difficultyHint =
+    confidenceLevel <= 2 ? "easy" : confidenceLevel <= 3 ? "medium" : "hard";
+
+  // Build context from both survey formats
+  const interestsStr = userSurvey.interests?.join(", ") || "general";
+  const buildIdea = userSurvey.buildIdea || "";
+  const level =
+    userSurvey.experienceLevel ||
+    (confidenceLevel <= 2
+      ? "beginner"
+      : confidenceLevel <= 3
+        ? "intermediate"
+        : "advanced");
+
   const prompt = `Generate a unique coding challenge based on:
 
 COURSE: ${courseId}
-USER LEVEL: ${userSurvey.experienceLevel}
-INTERESTS: ${userSurvey.interests.join(", ")}
-GOALS: ${userSurvey.goals.join(", ")}
-LEARNING STYLE: ${userSurvey.learningStyle}
+USER LEVEL: ${level}
+INTERESTS: ${interestsStr}
+${buildIdea ? `USER'S BUILD IDEA: ${buildIdea}` : ""}
+DIFFICULTY TARGET: ${difficultyHint}
 
 SUGGESTED PROJECT IDEAS (pick ONE or create similar):
 ${suggestedProjects.map((p, i) => `${i + 1}. ${p}`).join("\n")}
@@ -241,11 +262,22 @@ function getFallbackChallenge(
 
 export async function POST(request: NextRequest) {
   try {
-    const { courseId, userId, userSurvey } = await request.json();
+    const { courseId, userId, userName, userAvatar, userSurvey } =
+      await request.json();
 
     if (!courseId) {
       return NextResponse.json({ error: "Missing courseId" }, { status: 400 });
     }
+
+    // Determine difficulty from survey confidence
+    const confidenceLevel = userSurvey?.confidence || 3;
+    const level =
+      userSurvey?.experienceLevel ||
+      (confidenceLevel <= 2
+        ? "beginner"
+        : confidenceLevel <= 3
+          ? "intermediate"
+          : "advanced");
 
     // Try AI generation first
     let challenge = await generateChallengeWithAI(
@@ -260,13 +292,10 @@ export async function POST(request: NextRequest) {
 
     // Fall back to curated challenges if AI fails
     if (!challenge) {
-      challenge = getFallbackChallenge(
-        courseId,
-        userSurvey?.experienceLevel || "beginner",
-      );
+      challenge = getFallbackChallenge(courseId, level);
     }
 
-    // Save to database if user is authenticated
+    // Save to database — auto-publish as public
     const supabase = getServerSupabase();
     if (supabase && userId) {
       const { data: savedChallenge, error } = await supabase
@@ -274,14 +303,23 @@ export async function POST(request: NextRequest) {
         .insert({
           course_id: courseId,
           user_id: userId,
+          user_name: userName || "Anonymous",
+          user_avatar: userAvatar || null,
           title: challenge.title,
           description: challenge.description,
           difficulty: challenge.difficulty,
           skills: challenge.skills,
           steps: challenge.steps,
+          estimated_time: challenge.estimatedTime,
+          project_type: challenge.projectType,
+          is_public: true,
         })
         .select()
         .single();
+
+      if (error) {
+        console.error("DB save error:", error);
+      }
 
       if (savedChallenge) {
         challenge = { ...challenge, id: savedChallenge.id };

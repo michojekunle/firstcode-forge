@@ -37,6 +37,10 @@ import { DeeperDive } from "@/components/learning/DeeperDive";
 import { RealWorldExample } from "@/components/learning/RealWorldExample";
 import { ReturnQuizPopup } from "@/components/learning/ReturnQuizPopup";
 import { useReturnQuiz } from "@/hooks/useReturnQuiz";
+import {
+  PostCourseSurvey,
+  type SurveyResult,
+} from "@/components/learning/PostCourseSurvey";
 
 // ============================================
 // LESSON DATA - DSA Course
@@ -1228,6 +1232,7 @@ export default function DSAPage() {
     steps: string[];
   }>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [showSurvey, setShowSurvey] = useState(false);
 
   const stats = { rating: 4.9, students: 2150 };
 
@@ -1257,7 +1262,7 @@ export default function DSAPage() {
     }
   };
 
-  const generateChallenge = async () => {
+  const generateChallenge = async (surveyData?: SurveyResult) => {
     try {
       const response = await fetch("/api/challenges/generate", {
         method: "POST",
@@ -1265,7 +1270,12 @@ export default function DSAPage() {
         body: JSON.stringify({
           courseId,
           userId: user?.id,
-          userSurvey: profile,
+          userName:
+            user?.user_metadata?.full_name ||
+            user?.user_metadata?.name ||
+            "Anonymous",
+          userAvatar: user?.user_metadata?.avatar_url || null,
+          userSurvey: surveyData || profile,
         }),
       });
       const data = await response.json();
@@ -1275,6 +1285,11 @@ export default function DSAPage() {
     } catch (error) {
       console.error("Failed to generate challenge:", error);
     }
+  };
+
+  const handleSurveyComplete = (result: SurveyResult) => {
+    setShowSurvey(false);
+    generateChallenge(result);
   };
 
   const renderLessonContent = () => {
@@ -1294,7 +1309,7 @@ export default function DSAPage() {
       case 6:
         return (
           <Lesson6
-            onGenerateChallenge={generateChallenge}
+            onGenerateChallenge={() => setShowSurvey(true)}
             onRatingSubmit={(rating, feedback) => {
               console.log("Rating submitted:", rating, feedback);
               setRatingSubmitted(true);
@@ -1325,6 +1340,18 @@ export default function DSAPage() {
           question={quizQuestion}
           onDismiss={dismissQuiz}
           onComplete={completeQuiz}
+        />
+      )}
+
+      {/* PostCourseSurvey Modal */}
+      {showSurvey && (
+        <PostCourseSurvey
+          courseTitle="DSA Fundamentals"
+          onComplete={handleSurveyComplete}
+          onDismiss={() => {
+            setShowSurvey(false);
+            generateChallenge();
+          }}
         />
       )}
       <div className="mx-auto max-w-4xl">
@@ -1457,7 +1484,10 @@ export default function DSAPage() {
                     <Link href="/challenges">
                       <Button glow>Start Challenge</Button>
                     </Link>
-                    <Button variant="outline" onClick={generateChallenge}>
+                    <Button
+                      variant="outline"
+                      onClick={() => generateChallenge()}
+                    >
                       Generate Another
                     </Button>
                   </div>
