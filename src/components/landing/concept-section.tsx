@@ -135,7 +135,7 @@ export function ConceptSection() {
             </div>
 
             {/* Code Content */}
-            <div className="p-6 text-sm">
+            <div className="p-6 text-sm font-mono whitespace-pre">
               {codeLines.map((line, index) => (
                 <motion.div
                   key={index}
@@ -188,7 +188,8 @@ export function ConceptSection() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={isPlaying ? handlePause : handlePlay}
-                className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/30 get-started-play-btn"
+                aria-label={isPlaying ? "Pause execution" : "Start execution"}
               >
                 {isPlaying ? (
                   <Pause className="w-4 h-4" />
@@ -201,6 +202,7 @@ export function ConceptSection() {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleReset}
                 className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
+                aria-label="Reset execution"
               >
                 <RotateCcw className="w-4 h-4" />
               </motion.button>
