@@ -41,6 +41,7 @@ import {
   PostCourseSurvey,
   type SurveyResult,
 } from "@/components/learning/PostCourseSurvey";
+import { ChallengeGeneratingLoader } from "@/components/learning/ChallengeGeneratingLoader";
 
 // ============================================
 // LESSON DATA - Flutter Advanced
@@ -1033,6 +1034,7 @@ export default function FlutterAdvancedPage() {
     steps: string[];
   }>(null);
   const [showSurvey, setShowSurvey] = useState(false);
+  const [generatingChallenge, setGeneratingChallenge] = useState(false);
 
   // Course stats
   const stats = { rating: 4.8, students: 1200 };
@@ -1076,6 +1078,7 @@ export default function FlutterAdvancedPage() {
   };
 
   const generateChallenge = async (surveyData?: SurveyResult) => {
+    setGeneratingChallenge(true);
     try {
       const response = await fetch("/api/challenges/generate", {
         method: "POST",
@@ -1097,6 +1100,8 @@ export default function FlutterAdvancedPage() {
       }
     } catch (error) {
       console.error("Failed to generate challenge:", error);
+    } finally {
+      setGeneratingChallenge(false);
     }
   };
 
@@ -1248,7 +1253,10 @@ export default function FlutterAdvancedPage() {
         </AnimatePresence>
 
         {/* Generated Challenge */}
-        {generatedChallenge && (
+        {/* Challenge Generating Loader */}
+        {generatingChallenge && <ChallengeGeneratingLoader />}
+
+        {generatedChallenge && !generatingChallenge && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

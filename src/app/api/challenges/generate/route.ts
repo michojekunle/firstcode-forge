@@ -17,6 +17,58 @@ const ChallengeSchema = z.object({
 
 type ChallengeResponse = z.infer<typeof ChallengeSchema>;
 
+// ============================================
+// AI PROVIDER CONFIGURATION
+// Fallback chain: Groq → Gemini → OpenAI → Curated
+// ============================================
+
+interface AIProvider {
+  name: string;
+  client: OpenAI;
+  model: string;
+}
+
+function getProviders(): AIProvider[] {
+  const providers: AIProvider[] = [];
+
+  // 1. Groq — fastest, most generous free tier (14,400 req/day)
+  if (process.env.GROQ_API_KEY) {
+    providers.push({
+      name: "Groq",
+      client: new OpenAI({
+        apiKey: process.env.GROQ_API_KEY,
+        baseURL: "https://api.groq.com/openai/v1",
+      }),
+      model: "llama-3.3-70b-versatile",
+    });
+  }
+
+  // 2. Gemini — generous free tier (1,500 req/day)
+  if (process.env.GEMINI_API_KEY) {
+    providers.push({
+      name: "Gemini",
+      client: new OpenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+      }),
+      model: "gemini-2.0-flash",
+    });
+  }
+
+  // 3. OpenAI — paid fallback
+  if (process.env.OPENAI_API_KEY) {
+    providers.push({
+      name: "OpenAI",
+      client: new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      }),
+      model: "gpt-4o-mini",
+    });
+  }
+
+  return providers;
+}
+
 // Project ideas database - used to ensure uniqueness and quality
 const PROJECT_IDEAS: Record<string, string[]> = {
   Flutter: [
@@ -57,15 +109,6 @@ const PROJECT_IDEAS: Record<string, string[]> = {
   ],
 };
 
-function getOpenAI(): OpenAI | null {
-  if (!process.env.OPENAI_API_KEY) {
-    return null;
-  }
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-}
-
 // Survey can be old format or new PostCourseSurvey format
 interface SurveyInput {
   experienceLevel?: string;
@@ -76,15 +119,8 @@ interface SurveyInput {
   confidence?: number;
 }
 
-// Generate a unique challenge based on course and survey
-async function generateChallengeWithAI(
-  courseId: string,
-  userSurvey: SurveyInput,
-): Promise<ChallengeResponse | null> {
-  const openai = getOpenAI();
-  if (!openai) return null;
-
-  // Get relevant project ideas for the course
+// Build the prompt for any provider
+function buildPrompt(courseId: string, userSurvey: SurveyInput): string {
   const language = courseId.includes("flutter")
     ? "Flutter"
     : courseId.includes("systems")
@@ -92,17 +128,14 @@ async function generateChallengeWithAI(
       : "JavaScript";
   const projectIdeas = PROJECT_IDEAS[language] || PROJECT_IDEAS.JavaScript;
 
-  // Pick 3 random project ideas to suggest
   const suggestedProjects = projectIdeas
     .sort(() => Math.random() - 0.5)
     .slice(0, 3);
 
-  // Map confidence to difficulty
   const confidenceLevel = userSurvey.confidence || 3;
   const difficultyHint =
     confidenceLevel <= 2 ? "easy" : confidenceLevel <= 3 ? "medium" : "hard";
 
-  // Build context from both survey formats
   const interestsStr = userSurvey.interests?.join(", ") || "general";
   const buildIdea = userSurvey.buildIdea || "";
   const level =
@@ -113,7 +146,7 @@ async function generateChallengeWithAI(
         ? "intermediate"
         : "advanced");
 
-  const prompt = `Generate a unique coding challenge based on:
+  return `Generate a unique coding challenge based on:
 
 COURSE: ${courseId}
 USER LEVEL: ${level}
@@ -142,10 +175,18 @@ Return ONLY valid JSON matching this schema:
   "estimatedTime": "2-3 hours",
   "projectType": "app|tool|system|game"
 }`;
+}
 
+// Try generating with a single provider
+async function tryProvider(
+  provider: AIProvider,
+  prompt: string,
+): Promise<ChallengeResponse | null> {
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    console.log(`[Challenge Gen] Trying ${provider.name}...`);
+
+    const response = await provider.client.chat.completions.create({
+      model: provider.model,
       messages: [
         {
           role: "system",
@@ -159,24 +200,54 @@ Return ONLY valid JSON matching this schema:
     });
 
     const content = response.choices[0]?.message?.content;
-    if (!content) return null;
+    if (!content) {
+      console.log(`[Challenge Gen] ${provider.name}: empty response`);
+      return null;
+    }
 
-    // Extract JSON from response
+    // Extract JSON from response (handles markdown code blocks too)
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
+    if (!jsonMatch) {
+      console.log(`[Challenge Gen] ${provider.name}: no JSON found`);
+      return null;
+    }
 
     const parsed = JSON.parse(jsonMatch[0]);
-
-    // Validate with Zod - this prevents hallucinations by ensuring structure
     const validated = ChallengeSchema.parse(parsed);
+
+    console.log(`[Challenge Gen] ✅ ${provider.name} succeeded`);
     return validated;
   } catch (error) {
-    console.error("AI generation error:", error);
+    console.error(`[Challenge Gen] ❌ ${provider.name} failed:`, error);
     return null;
   }
 }
 
-// Fallback challenges when AI fails
+// Generate challenge with fallback chain: Groq → Gemini → OpenAI → Curated
+async function generateChallengeWithAI(
+  courseId: string,
+  userSurvey: SurveyInput,
+): Promise<ChallengeResponse | null> {
+  const providers = getProviders();
+
+  if (providers.length === 0) {
+    console.log("[Challenge Gen] No AI providers configured, using fallback");
+    return null;
+  }
+
+  const prompt = buildPrompt(courseId, userSurvey);
+
+  // Try each provider in order
+  for (const provider of providers) {
+    const result = await tryProvider(provider, prompt);
+    if (result) return result;
+  }
+
+  console.log("[Challenge Gen] All providers failed, using fallback");
+  return null;
+}
+
+// Fallback challenges when all AI providers fail
 function getFallbackChallenge(
   courseId: string,
   level: string,
@@ -279,7 +350,7 @@ export async function POST(request: NextRequest) {
           ? "intermediate"
           : "advanced");
 
-    // Try AI generation first
+    // Try AI generation with fallback chain
     let challenge = await generateChallengeWithAI(
       courseId,
       userSurvey || {
@@ -290,7 +361,7 @@ export async function POST(request: NextRequest) {
       },
     );
 
-    // Fall back to curated challenges if AI fails
+    // Fall back to curated challenges if all AI providers fail
     if (!challenge) {
       challenge = getFallbackChallenge(courseId, level);
     }

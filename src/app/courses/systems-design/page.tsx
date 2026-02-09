@@ -43,6 +43,7 @@ import {
   PostCourseSurvey,
   type SurveyResult,
 } from "@/components/learning/PostCourseSurvey";
+import { ChallengeGeneratingLoader } from "@/components/learning/ChallengeGeneratingLoader";
 
 // ============================================
 // LESSON DATA
@@ -1214,7 +1215,10 @@ export default function SystemsDesignPage() {
         </AnimatePresence>
 
         {/* Generated Challenge */}
-        {generatedChallenge && (
+        {/* Challenge Generating Loader */}
+        {generatingChallenge && <ChallengeGeneratingLoader />}
+
+        {generatedChallenge && !generatingChallenge && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

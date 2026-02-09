@@ -26,15 +26,19 @@ export function ConceptSection() {
       const timer = setTimeout(() => {
         setActiveLineIndex(2); // Highlight print line
         setTimeout(() => {
+          const nextIteration = currentIteration + 1;
           setCurrentIteration((prev) => prev + 1);
           setOutputValues((prev) => [...prev, currentIteration + 1]);
           progress.set(currentIteration + 2);
+
+          // When the loop completes, stop playing
+          if (nextIteration >= 4) {
+            setIsPlaying(false);
+            setActiveLineIndex(-1);
+          }
         }, 300);
       }, 800);
       return () => clearTimeout(timer);
-    } else if (currentIteration >= 4) {
-      setIsPlaying(false);
-      setActiveLineIndex(-1);
     }
   }, [isPlaying, currentIteration, progress]);
 
@@ -63,7 +67,7 @@ export function ConceptSection() {
 
     // Keywords
     const keywords = ["void", "main", "for", "int", "print"];
-    let highlighted = code;
+    // let highlighted = code;
 
     return (
       <span className="font-mono">

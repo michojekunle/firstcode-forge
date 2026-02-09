@@ -45,6 +45,7 @@ import {
   PostCourseSurvey,
   type SurveyResult,
 } from "@/components/learning/PostCourseSurvey";
+import { ChallengeGeneratingLoader } from "@/components/learning/ChallengeGeneratingLoader";
 
 // ============================================
 // LESSON DATA - Immersive content structure
@@ -1100,6 +1101,7 @@ export default function FlutterFundamentalsPage() {
   const [showRating, setShowRating] = useState(false);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
+  const [generatingChallenge, setGeneratingChallenge] = useState(false);
 
   // Course stats (would come from API in production)
   const stats = { rating: 4.9, students: 2400 };
@@ -1134,6 +1136,7 @@ export default function FlutterFundamentalsPage() {
   };
 
   const generateChallenge = async (surveyData?: SurveyResult) => {
+    setGeneratingChallenge(true);
     try {
       const response = await fetch("/api/challenges/generate", {
         method: "POST",
@@ -1155,6 +1158,8 @@ export default function FlutterFundamentalsPage() {
       }
     } catch (error) {
       console.error("Failed to generate challenge:", error);
+    } finally {
+      setGeneratingChallenge(false);
     }
   };
 
@@ -1312,8 +1317,11 @@ export default function FlutterFundamentalsPage() {
           </motion.div>
         </AnimatePresence>
 
+        {/* Challenge Generating Loader */}
+        {generatingChallenge && <ChallengeGeneratingLoader />}
+
         {/* Generated Challenge Display */}
-        {generatedChallenge && (
+        {generatedChallenge && !generatingChallenge && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

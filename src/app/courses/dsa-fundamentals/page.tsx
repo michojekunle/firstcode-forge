@@ -41,6 +41,7 @@ import {
   PostCourseSurvey,
   type SurveyResult,
 } from "@/components/learning/PostCourseSurvey";
+import { ChallengeGeneratingLoader } from "@/components/learning/ChallengeGeneratingLoader";
 
 // ============================================
 // LESSON DATA - DSA Course
@@ -1233,6 +1234,7 @@ export default function DSAPage() {
   }>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
+  const [generatingChallenge, setGeneratingChallenge] = useState(false);
 
   const stats = { rating: 4.9, students: 2150 };
 
@@ -1263,6 +1265,7 @@ export default function DSAPage() {
   };
 
   const generateChallenge = async (surveyData?: SurveyResult) => {
+    setGeneratingChallenge(true);
     try {
       const response = await fetch("/api/challenges/generate", {
         method: "POST",
@@ -1284,6 +1287,8 @@ export default function DSAPage() {
       }
     } catch (error) {
       console.error("Failed to generate challenge:", error);
+    } finally {
+      setGeneratingChallenge(false);
     }
   };
 
@@ -1441,7 +1446,10 @@ export default function DSAPage() {
         </AnimatePresence>
 
         {/* Generated Challenge */}
-        {generatedChallenge && (
+        {/* Challenge Generating Loader */}
+        {generatingChallenge && <ChallengeGeneratingLoader />}
+
+        {generatedChallenge && !generatingChallenge && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
