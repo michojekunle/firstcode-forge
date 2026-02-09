@@ -32,6 +32,11 @@ import {
   ProgressMilestone,
 } from "@/components/learning/IconHighlight";
 import { CourseRating } from "@/components/learning/CourseRating";
+import { ReadMoreLink } from "@/components/learning/ReadMoreLink";
+import { DeeperDive } from "@/components/learning/DeeperDive";
+import { RealWorldExample } from "@/components/learning/RealWorldExample";
+import { ReturnQuizPopup } from "@/components/learning/ReturnQuizPopup";
+import { useReturnQuiz } from "@/hooks/useReturnQuiz";
 
 // ============================================
 // LESSON DATA - DSA Course
@@ -136,6 +141,39 @@ function Lesson0() {
           { label: "Code", icon: "💻", description: "Implement solution" },
           { label: "Optimize", icon: "⚡", description: "Improve efficiency" },
         ]}
+      />
+
+      <DeeperDive title="How Google Search Uses DSA">
+        <p className="text-foreground">
+          When you search Google, your query triggers algorithms running on{" "}
+          <strong>millions of servers</strong>.
+        </p>
+        <p>
+          The <strong>PageRank</strong> algorithm treats the web as a graph and
+          ranks pages by how many quality pages link to them. Search
+          autocomplete uses <strong>Trie</strong> data structures for O(k)
+          prefix matching (where k is the length of what you typed).
+        </p>
+        <p>
+          Even the order of search results uses{" "}
+          <strong>sorting algorithms</strong> optimized for relevance scoring.
+          Every millisecond saved = billions of queries served faster.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Google Maps"
+        concept="Graph algorithms in navigation"
+        description="Google Maps uses Dijkstra's algorithm (and optimized variants like A*) to find shortest paths between locations. The road network is a weighted graph with millions of nodes."
+        icon="🗺️"
+      />
+
+      <ReadMoreLink
+        title="VisuAlgo — Visualize DSA"
+        url="https://visualgo.net"
+        topic="big-o"
+        description="Interactive visualizations for every data structure and algorithm"
+        icon="🎬"
       />
     </div>
   );
@@ -251,6 +289,52 @@ function binarySearch(arr, target) {
         description="Drop constants and lower-order terms. O(2n) = O(n). O(n² + n) = O(n²). Focus on the dominant term."
         variant="tip"
       />
+
+      <DeeperDive title="Space Complexity — The Forgotten Dimension">
+        <p className="text-foreground">
+          Time complexity gets all the attention, but{" "}
+          <strong>space complexity</strong> matters too. How much extra memory
+          does your algorithm use?
+        </p>
+        <p>
+          <strong className="text-foreground">O(1) space:</strong> Swapping
+          variables in-place. You use no extra memory.
+          <br />
+          <strong className="text-foreground">O(n) space:</strong> Creating a
+          copy of an array. Memory scales with input.
+          <br />
+          <strong className="text-foreground">O(n²) space:</strong> 2D matrix
+          for dynamic programming.
+        </p>
+        <p>
+          <strong className="text-foreground">Trade-off:</strong> You can often
+          trade space for time. Hash maps use O(n) space but give O(1) lookups,
+          turning O(n²) algorithms into O(n).
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Netflix"
+        concept="Algorithm efficiency at scale"
+        description="Netflix's recommendation engine processes 100M+ user profiles. An O(n²) algorithm would take years. They use O(n log n) collaborative filtering to serve recommendations in milliseconds."
+        icon="🎬"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Big-O Cheat Sheet"
+          url="https://www.bigocheatsheet.com"
+          topic="big-o"
+          description="Visual reference for all common complexities"
+        />
+        <ReadMoreLink
+          title="Amortized Analysis Explained"
+          url="https://medium.com/@satorusasozaki/amortized-time-in-the-time-complexity-of-an-algorithm-6966b4e44a7d"
+          topic="big-o"
+          description="When worst-case isn't the full story"
+          icon="📊"
+        />
+      </div>
     </div>
   );
 }
@@ -353,6 +437,62 @@ console.log(isPalindrome("hello"));   // false`}
         description="Sorted arrays, palindrome checks, finding pairs that sum to a target. Reduces O(n²) to O(n) in many cases!"
         variant="tip"
       />
+
+      <DeeperDive title="Sliding Window — The Power Technique">
+        <p className="text-foreground">
+          The sliding window technique processes{" "}
+          <strong>contiguous subarrays</strong> without recalculating everything
+          from scratch.
+        </p>
+        <LiveCodeEditor
+          title="Maximum Sum Subarray (Window of size k)"
+          language="javascript"
+          code={`function maxSumSubarray(arr, k) {
+  let windowSum = 0;
+  let maxSum = -Infinity;
+  
+  for (let i = 0; i < arr.length; i++) {
+    windowSum += arr[i];       // Add right element
+    
+    if (i >= k) {
+      windowSum -= arr[i - k]; // Remove left element
+    }
+    
+    if (i >= k - 1) {
+      maxSum = Math.max(maxSum, windowSum);
+    }
+  }
+  return maxSum;
+}
+
+// [2, 1, 5, 1, 3, 2], k=3
+// Windows: [2,1,5]=8, [1,5,1]=7, [5,1,3]=9, [1,3,2]=6
+// Max = 9 — found in O(n), not O(n×k)!`}
+        />
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Spotify"
+        concept="Array processing in audio streaming"
+        description="Spotify's audio processing uses sliding windows over PCM sample arrays for real-time equalization, beat detection, and audio analysis. Efficient array operations make streaming smooth."
+        icon="🎵"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="14 Array Patterns for Interviews"
+          url="https://hackernoon.com/14-patterns-to-ace-any-coding-interview-question-c5bb3357f6ed"
+          topic="arrays-strings"
+          description="Master the most common problem patterns"
+        />
+        <ReadMoreLink
+          title="LeetCode Array Problems"
+          url="https://leetcode.com/tag/array/"
+          topic="arrays-strings"
+          description="Practice with real interview questions"
+          icon="🎯"
+        />
+      </div>
     </div>
   );
 }
@@ -473,6 +613,63 @@ list.prepend(0); // 0 → 1 → 2 → null`}
         description="*O(1) insert/delete is only after you've found the position. Finding it is O(n). But if you already have the node reference, it's instant!"
         variant="warning"
       />
+
+      <DeeperDive title="Reversing a Linked List — The Classic Interview Question">
+        <p className="text-foreground">
+          This is asked in <strong>90% of DSA interviews</strong>. Understanding
+          it proves you grasp pointer manipulation.
+        </p>
+        <LiveCodeEditor
+          title="Reverse Linked List (Iterative)"
+          language="javascript"
+          code={`function reverse(head) {
+  let prev = null;
+  let current = head;
+  
+  while (current) {
+    const next = current.next; // Save next
+    current.next = prev;       // Reverse pointer
+    prev = current;            // Move prev forward
+    current = next;            // Move current forward
+  }
+  
+  return prev; // New head
+}
+
+// Before: 1 → 2 → 3 → null
+// After:  3 → 2 → 1 → null
+// Time: O(n), Space: O(1)`}
+        />
+        <p>
+          <strong className="text-foreground">Cycle detection:</strong>{" "}
+          Floyd&apos;s algorithm uses a fast pointer (2 steps) and slow pointer
+          (1 step). If they meet, there&apos;s a cycle. This is O(n) time, O(1)
+          space.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Operating Systems"
+        concept="Linked lists in memory management"
+        description="Your OS uses linked lists for the free memory list. When you malloc() memory, the OS walks a linked list of free blocks to find one that fits. Deallocating adds the block back to the list."
+        icon="🖥️"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Linked List Visualizer"
+          url="https://visualgo.net/en/list"
+          topic="linked-lists"
+          description="Watch operations animate step by step"
+        />
+        <ReadMoreLink
+          title="When to Use Linked Lists"
+          url="https://www.geeksforgeeks.org/linked-list-vs-array/"
+          topic="linked-lists"
+          description="Array vs Linked List decision guide"
+          icon="⚖️"
+        />
+      </div>
     </div>
   );
 }
@@ -598,6 +795,68 @@ function search(root, target) {
     : search(root.right, target);
 }`}
       />
+
+      <DeeperDive title="BFS vs DFS — When to Use Which">
+        <p className="text-foreground">
+          Both traverse the same nodes but in very different orders. The right
+          choice depends on the problem.
+        </p>
+        <VisualComparison
+          title="BFS vs DFS"
+          items={[
+            {
+              label: "BFS (Queue)",
+              icon: "➡️",
+              color: "border-blue-500/30 bg-blue-500/5",
+              points: [
+                "Level by level exploration",
+                "Finds shortest path (unweighted)",
+                "Uses more memory (queue)",
+                "Best for: nearest neighbor, shortest path",
+              ],
+            },
+            {
+              label: "DFS (Stack)",
+              icon: "⬇️",
+              color: "border-green-500/30 bg-green-500/5",
+              points: [
+                "Goes as deep as possible first",
+                "Uses less memory (call stack)",
+                "Good for detecting cycles",
+                "Best for: path existence, backtracking",
+              ],
+            },
+          ]}
+        />
+        <p>
+          <strong className="text-foreground">Real-world analogy:</strong> BFS
+          is like exploring every room on floor 1 before going to floor 2. DFS
+          is like following one hallway to the end before backtracking.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="File Systems"
+        concept="Trees in your computer"
+        description="Your file system is literally a tree. Folders are nodes, files are leaves. When you search for a file, your OS uses DFS to traverse the directory tree. 'Find' and 'ls -R' are tree traversals!"
+        icon="📂"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Tree Traversal Visualizer"
+          url="https://visualgo.net/en/bst"
+          topic="trees-graphs"
+          description="Interactive BST with step-by-step traversal"
+        />
+        <ReadMoreLink
+          title="Graph Algorithms Explained"
+          url="https://www.freecodecamp.org/news/graph-algorithms-for-technical-interviews/"
+          topic="trees-graphs"
+          description="Complete guide with practice problems"
+          icon="🌐"
+        />
+      </div>
     </div>
   );
 }
@@ -734,6 +993,70 @@ console.log(binarySearch(sorted, 8)); // 3`}
         description="Always ask: 'Is the input sorted?' If yes, think binary search. If you need to sort first, factor in O(n log n) sorting time."
         variant="tip"
       />
+
+      <DeeperDive title="Beyond Comparison Sorts — O(n) is Possible!">
+        <p className="text-foreground">
+          Comparison-based sorts (merge, quick, heap) have a{" "}
+          <strong>mathematical lower bound of O(n log n)</strong>. But
+          non-comparison sorts can break this barrier!
+        </p>
+        <LiveCodeEditor
+          title="Counting Sort — O(n + k)"
+          language="javascript"
+          code={`// When values are in a known range [0, k]
+function countingSort(arr, max) {
+  const count = new Array(max + 1).fill(0);
+  
+  // Count occurrences
+  for (const num of arr) {
+    count[num]++;
+  }
+  
+  // Rebuild sorted array
+  const result = [];
+  for (let i = 0; i <= max; i++) {
+    while (count[i] > 0) {
+      result.push(i);
+      count[i]--;
+    }
+  }
+  return result;
+}
+
+// [4, 2, 2, 8, 3, 3, 1] → [1, 2, 2, 3, 3, 4, 8]
+// Time: O(n + k) where k is the range
+// Catch: only works for non-negative integers!`}
+        />
+        <p>
+          <strong className="text-foreground">Stability:</strong> A stable sort
+          preserves the relative order of equal elements. Merge sort is stable,
+          quicksort is not. This matters when sorting objects by multiple
+          fields.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Database Engines"
+        concept="Sorting in query execution"
+        description="When you write ORDER BY in SQL, your database picks the best sort algorithm. PostgreSQL uses merge sort for disk-based sorting (stable, good I/O patterns) and quicksort for in-memory data."
+        icon="🗄️"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Sorting Algorithms Animated"
+          url="https://www.toptal.com/developers/sorting-algorithms"
+          topic="sorting-searching"
+          description="See every sorting algorithm race side by side"
+        />
+        <ReadMoreLink
+          title="When to Use Which Sort"
+          url="https://www.geeksforgeeks.org/sorting-algorithms/"
+          topic="sorting-searching"
+          description="Complete comparison with use cases"
+          icon="📊"
+        />
+      </div>
     </div>
   );
 }
@@ -986,8 +1309,24 @@ export default function DSAPage() {
     }
   };
 
+  // Return quiz popup integration
+  const {
+    quizQuestion,
+    isVisible: quizVisible,
+    dismiss: dismissQuiz,
+    complete: completeQuiz,
+  } = useReturnQuiz();
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
+      {/* Return Quiz Popup */}
+      {quizVisible && quizQuestion && (
+        <ReturnQuizPopup
+          question={quizQuestion}
+          onDismiss={dismissQuiz}
+          onComplete={completeQuiz}
+        />
+      )}
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <motion.div

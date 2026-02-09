@@ -30,11 +30,15 @@ import {
   VisualComparison,
 } from "@/components/learning/ConceptBreakdown";
 import {
-  IconHighlight,
   ConceptChips,
   KeyPointCallout,
   ProgressMilestone,
 } from "@/components/learning/IconHighlight";
+import { ReadMoreLink } from "@/components/learning/ReadMoreLink";
+import { DeeperDive } from "@/components/learning/DeeperDive";
+import { RealWorldExample } from "@/components/learning/RealWorldExample";
+import { ReturnQuizPopup } from "@/components/learning/ReturnQuizPopup";
+import { useReturnQuiz } from "@/hooks/useReturnQuiz";
 
 // ============================================
 // LESSON DATA
@@ -145,6 +149,51 @@ function Lesson0() {
           { id: "queue", label: "Message Queue", icon: "📬" },
         ]}
         connections={[]}
+      />
+
+      <DeeperDive title="Latency Numbers Every Developer Should Know">
+        <p className="text-foreground">
+          Understanding these orders of magnitude shapes every design decision:
+        </p>
+        <p>
+          <strong className="text-foreground">L1 cache reference:</strong> 0.5
+          ns
+          <br />
+          <strong className="text-foreground">RAM reference:</strong> 100 ns
+          <br />
+          <strong className="text-foreground">SSD read:</strong> 150,000 ns (150
+          µs)
+          <br />
+          <strong className="text-foreground">
+            Round trip same datacenter:
+          </strong>{" "}
+          500,000 ns (0.5 ms)
+          <br />
+          <strong className="text-foreground">
+            Round trip CA to Netherlands:
+          </strong>{" "}
+          150,000,000 ns (150 ms)
+        </p>
+        <p>
+          This is why caching matters so much — going from RAM (100ns) to a
+          cross-continental database query (150ms) is a{" "}
+          <strong>1.5 million times</strong> difference.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Twitter"
+        concept="Systems thinking in social media"
+        description="Twitter processes 500M+ tweets/day. Every tweet must be delivered to millions of followers in real-time. This requires caching (fanout on read vs write), message queues, and distributed databases working in concert."
+        icon="🐦"
+      />
+
+      <ReadMoreLink
+        title="System Design Primer"
+        url="https://github.com/donnemartin/system-design-primer"
+        topic="systems-thinking"
+        description="The most comprehensive free systems design resource"
+        icon="🎯"
       />
     </div>
   );
@@ -276,6 +325,76 @@ function Lesson1() {
         description="80% of scaling problems are solved by: load balancers, caching, and database indexing. Master these before exploring complex solutions."
         variant="tip"
       />
+
+      <DeeperDive title="CAP Theorem — The Impossible Triangle">
+        <p className="text-foreground">
+          In distributed systems, you can only guarantee{" "}
+          <strong>two out of three</strong>:
+        </p>
+        <VisualComparison
+          title="CAP Theorem"
+          items={[
+            {
+              label: "Consistency",
+              icon: "✅",
+              color: "border-blue-500/30 bg-blue-500/5",
+              points: [
+                "Every read gets the latest write",
+                "All nodes see same data",
+                "Banking requires this",
+              ],
+            },
+            {
+              label: "Availability",
+              icon: "🟢",
+              color: "border-green-500/30 bg-green-500/5",
+              points: [
+                "Every request gets a response",
+                "System never refuses service",
+                "Social media prioritizes this",
+              ],
+            },
+            {
+              label: "Partition Tolerance",
+              icon: "🛡️",
+              color: "border-orange-500/30 bg-orange-500/5",
+              points: [
+                "System works despite network failures",
+                "Required in distributed systems",
+                "You always need this",
+              ],
+            },
+          ]}
+        />
+        <p>
+          Since partition tolerance is mandatory, the real choice is:{" "}
+          <strong>CP</strong> (consistent but might refuse requests) or{" "}
+          <strong>AP</strong> (always available but might serve stale data).
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Amazon DynamoDB"
+        concept="Horizontal scaling in production"
+        description="DynamoDB automatically partitions data across thousands of servers. It chose AP (availability + partition tolerance), using 'eventual consistency' where reads might be slightly stale but the system never goes down."
+        icon="☁️"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="CAP Theorem Explained"
+          url="https://www.ibm.com/topics/cap-theorem"
+          topic="cap-theorem"
+          description="Clear explanation with real database examples"
+        />
+        <ReadMoreLink
+          title="Load Balancing Algorithms"
+          url="https://www.nginx.com/resources/glossary/load-balancing/"
+          topic="cap-theorem"
+          description="Round-robin, least connections, IP hash, and more"
+          icon="⚖️"
+        />
+      </div>
     </div>
   );
 }
@@ -388,6 +507,55 @@ SELECT * FROM users WHERE email = 'john@example.com';
         description="Most apps are 90% reads, 10% writes. Use read replicas to scale reads infinitely while keeping one master for writes."
         variant="tip"
       />
+
+      <DeeperDive title="Database Sharding — Splitting the Giant">
+        <p className="text-foreground">
+          When a single database can&apos;t handle the load, you{" "}
+          <strong>shard</strong> it — splitting data across multiple databases
+          by a key.
+        </p>
+        <p>
+          <strong className="text-foreground">Common strategies:</strong>
+          <br />
+          <strong>• Range-based:</strong> Users A-M on shard 1, N-Z on shard 2
+          (can be uneven)
+          <br />
+          <strong>• Hash-based:</strong> hash(userId) % numShards (even
+          distribution)
+          <br />
+          <strong>• Geography-based:</strong> US users on US shard, EU on EU
+          shard (low latency)
+        </p>
+        <p>
+          <strong className="text-foreground">The challenge:</strong>{" "}
+          Cross-shard queries are expensive. If user data is on shard 1 but
+          their orders are on shard 3, you need to query both. This is why shard
+          key selection is critical.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Instagram"
+        concept="PostgreSQL sharding at scale"
+        description="Instagram shards its PostgreSQL database by user ID. Each shard handles a subset of users. They built pgbouncer for connection pooling and custom tools for cross-shard migrations."
+        icon="📸"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="SQL vs NoSQL Decision Guide"
+          url="https://www.mongodb.com/nosql-explained/nosql-vs-sql"
+          topic="database-design"
+          description="When to choose which database type"
+        />
+        <ReadMoreLink
+          title="Database Indexing Deep Dive"
+          url="https://use-the-index-luke.com"
+          topic="database-design"
+          description="How database indexes work at the B-tree level"
+          icon="🌳"
+        />
+      </div>
     </div>
   );
 }
@@ -502,6 +670,55 @@ async function getUser(userId: string) {
         description="'There are only two hard things in computer science: cache invalidation and naming things.' — Phil Karlton. When data changes, make sure to update or delete the cached version!"
         variant="warning"
       />
+
+      <DeeperDive title="Cache Strategies — Write-Through vs Write-Behind">
+        <p className="text-foreground">
+          How you keep cache and database in sync depends on your consistency
+          needs:
+        </p>
+        <p>
+          <strong className="text-foreground">
+            Cache-Aside (Lazy Loading):
+          </strong>{" "}
+          App checks cache first. On miss, reads from DB and populates cache.
+          Most common pattern.
+        </p>
+        <p>
+          <strong className="text-foreground">Write-Through:</strong> Every
+          write goes to both cache AND DB. Ensures consistency but adds write
+          latency.
+        </p>
+        <p>
+          <strong className="text-foreground">
+            Write-Behind (Write-Back):
+          </strong>{" "}
+          Write to cache first, then asynchronously write to DB. Fastest writes,
+          but risk of data loss if cache fails.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Netflix"
+        concept="Multi-layer caching"
+        description="Netflix uses EVCache (based on Memcached) to cache everything from user profiles to video metadata. They serve 200B+ requests/day from cache, keeping database load manageable."
+        icon="🎬"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Caching Strategies Guide"
+          url="https://codeahoy.com/2017/08/11/caching-strategies-and-how-to-choose-the-right-one/"
+          topic="caching"
+          description="When to use which caching pattern"
+        />
+        <ReadMoreLink
+          title="Redis Documentation"
+          url="https://redis.io/docs/"
+          topic="caching"
+          description="Master the most popular caching solution"
+          icon="🟥"
+        />
+      </div>
     </div>
   );
 }
@@ -615,6 +832,49 @@ function Lesson4() {
         description="Don't start with microservices! Begin with a well-structured monolith. Split into services only when you have clear scaling bottlenecks or team size requires it."
         variant="important"
       />
+
+      <DeeperDive title="Event-Driven Architecture — The Glue Between Services">
+        <p className="text-foreground">
+          Microservices need to communicate. <strong>Synchronous</strong> calls
+          (HTTP/gRPC) create tight coupling. <strong>Asynchronous</strong>{" "}
+          events decouple services.
+        </p>
+        <p>
+          <strong className="text-foreground">Event Sourcing:</strong> Instead
+          of storing current state, store every event that happened. &quot;User
+          created,&quot; &quot;Address updated,&quot; &quot;Order placed.&quot;
+          Replay events to reconstruct state at any point in time.
+        </p>
+        <p>
+          <strong className="text-foreground">CQRS:</strong> Command Query
+          Responsibility Segregation. Separate the write model (optimized for
+          writes) from the read model (denormalized for fast queries). Use
+          events to sync them.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Uber"
+        concept="Microservices at extreme scale"
+        description="Uber runs 4000+ microservices. Their domain-oriented architecture groups services by business domain (ride, payment, driver). Services communicate asynchronously via Apache Kafka, processing 1 trillion+ messages/day."
+        icon="🚕"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Microservices Patterns"
+          url="https://microservices.io/patterns/index.html"
+          topic="microservices"
+          description="Complete catalog of microservice design patterns"
+        />
+        <ReadMoreLink
+          title="Martin Fowler on Microservices"
+          url="https://martinfowler.com/articles/microservices.html"
+          topic="microservices"
+          description="The definitive article on microservice architecture"
+          icon="📝"
+        />
+      </div>
     </div>
   );
 }
@@ -647,8 +907,8 @@ function Lesson5({ onGenerateChallenge }: { onGenerateChallenge: () => void }) {
             You Think Like an Architect Now!
           </h2>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            You&apos;ve learned the foundations of systems design. Time to design
-            your own system.
+            You&apos;ve learned the foundations of systems design. Time to
+            design your own system.
           </p>
 
           <ConceptChips
@@ -822,8 +1082,24 @@ export default function SystemsDesignPage() {
     }
   };
 
+  // Return quiz popup integration
+  const {
+    quizQuestion,
+    isVisible: quizVisible,
+    dismiss: dismissQuiz,
+    complete: completeQuiz,
+  } = useReturnQuiz();
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
+      {/* Return Quiz Popup */}
+      {quizVisible && quizQuestion && (
+        <ReturnQuizPopup
+          question={quizQuestion}
+          onDismiss={dismissQuiz}
+          onComplete={completeQuiz}
+        />
+      )}
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <motion.div

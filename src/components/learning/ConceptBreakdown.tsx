@@ -313,7 +313,7 @@ interface ComparisonItem {
 
 interface VisualComparisonProps {
   title: string;
-  items: [ComparisonItem, ComparisonItem];
+  items: ComparisonItem[];
   vsLabel?: string;
 }
 
@@ -325,62 +325,104 @@ export function VisualComparison({
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
+  // For 2 items, use the classic VS layout
+  if (items.length === 2) {
+    return (
+      <Card ref={ref} hover={false} className="p-6">
+        <h4 className="font-semibold text-lg text-center mb-6">{title}</h4>
+        <div className="grid md:grid-cols-[1fr,auto,1fr] gap-4 items-start">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            className={cn("p-4 rounded-xl border-2", items[0].color)}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">{items[0].icon}</span>
+              <span className="font-medium">{items[0].label}</span>
+            </div>
+            <ul className="space-y-2">
+              {items[0].points.map((point, i) => (
+                <li
+                  key={i}
+                  className="text-sm text-muted-foreground flex gap-2"
+                >
+                  <span className="text-primary">•</span>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ delay: 0.2 }}
+            className="flex items-center justify-center"
+          >
+            <span className="px-3 py-1 bg-muted rounded-full text-sm font-bold">
+              {vsLabel}
+            </span>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            className={cn("p-4 rounded-xl border-2", items[1].color)}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">{items[1].icon}</span>
+              <span className="font-medium">{items[1].label}</span>
+            </div>
+            <ul className="space-y-2">
+              {items[1].points.map((point, i) => (
+                <li
+                  key={i}
+                  className="text-sm text-muted-foreground flex gap-2"
+                >
+                  <span className="text-primary">•</span>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        </div>
+      </Card>
+    );
+  }
+
+  // For 3+ items, use a flexible grid
   return (
     <Card ref={ref} hover={false} className="p-6">
       <h4 className="font-semibold text-lg text-center mb-6">{title}</h4>
-
-      <div className="grid md:grid-cols-[1fr,auto,1fr] gap-4 items-start">
-        {/* First item */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          className={cn("p-4 rounded-xl border-2", items[0].color)}
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl">{items[0].icon}</span>
-            <span className="font-medium">{items[0].label}</span>
-          </div>
-          <ul className="space-y-2">
-            {items[0].points.map((point, i) => (
-              <li key={i} className="text-sm text-muted-foreground flex gap-2">
-                <span className="text-primary">•</span>
-                {point}
-              </li>
-            ))}
-          </ul>
-        </motion.div>
-
-        {/* VS divider */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ delay: 0.2 }}
-          className="flex items-center justify-center"
-        >
-          <span className="px-3 py-1 bg-muted rounded-full text-sm font-bold">
-            {vsLabel}
-          </span>
-        </motion.div>
-
-        {/* Second item */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={isInView ? { opacity: 1, x: 0 } : {}}
-          className={cn("p-4 rounded-xl border-2", items[1].color)}
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl">{items[1].icon}</span>
-            <span className="font-medium">{items[1].label}</span>
-          </div>
-          <ul className="space-y-2">
-            {items[1].points.map((point, i) => (
-              <li key={i} className="text-sm text-muted-foreground flex gap-2">
-                <span className="text-primary">•</span>
-                {point}
-              </li>
-            ))}
-          </ul>
-        </motion.div>
+      <div
+        className={cn(
+          "grid gap-4",
+          items.length === 3 ? "md:grid-cols-3" : "md:grid-cols-2",
+        )}
+      >
+        {items.map((item, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: index * 0.1 }}
+            className={cn("p-4 rounded-xl border-2", item.color)}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">{item.icon}</span>
+              <span className="font-medium">{item.label}</span>
+            </div>
+            <ul className="space-y-2">
+              {item.points.map((point, i) => (
+                <li
+                  key={i}
+                  className="text-sm text-muted-foreground flex gap-2"
+                >
+                  <span className="text-primary">•</span>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        ))}
       </div>
     </Card>
   );

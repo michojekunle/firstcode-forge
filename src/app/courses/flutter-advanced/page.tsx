@@ -32,6 +32,11 @@ import {
   ProgressMilestone,
 } from "@/components/learning/IconHighlight";
 import { CourseRating } from "@/components/learning/CourseRating";
+import { ReadMoreLink } from "@/components/learning/ReadMoreLink";
+import { DeeperDive } from "@/components/learning/DeeperDive";
+import { RealWorldExample } from "@/components/learning/RealWorldExample";
+import { ReturnQuizPopup } from "@/components/learning/ReturnQuizPopup";
+import { useReturnQuiz } from "@/hooks/useReturnQuiz";
 
 // ============================================
 // LESSON DATA - Flutter Advanced
@@ -169,6 +174,49 @@ CustomPaint(
         description="Charts, games, custom shapes, complex animations that widgets cannot express. It is the escape hatch when widgets are not enough."
         variant="tip"
       />
+
+      <DeeperDive title="The Flutter Rendering Pipeline">
+        <p className="text-foreground">
+          Flutter&apos;s rendering pipeline has 3 phases:{" "}
+          <strong>Layout</strong> (calculate sizes),
+          <strong> Paint</strong> (draw pixels), and{" "}
+          <strong>Compositing</strong> (combine layers for the GPU).
+        </p>
+        <p>
+          <code>CustomPainter</code> hooks into the Paint phase. For full
+          control, you can create a custom <code>RenderObject</code> that
+          controls all three phases. This is how Flutter&apos;s built-in widgets
+          actually work under the hood.
+        </p>
+        <p>
+          <strong className="text-foreground">Impeller</strong> is
+          Flutter&apos;s new rendering engine replacing Skia. It pre-compiles
+          shaders to eliminate jank from shader compilation.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Superlist"
+        concept="CustomPainter for rich canvas UI"
+        description="Superlist uses CustomPainter extensively for its beautiful task visualization, drawing custom curves, gradients, and glassmorphism effects that standard widgets can't achieve."
+        icon="✨"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Flutter Rendering Deep Dive"
+          url="https://docs.flutter.dev/resources/inside-flutter"
+          topic="custom-render"
+          description="How Flutter's rendering pipeline works internally"
+        />
+        <ReadMoreLink
+          title="CustomPainter Cookbook"
+          url="https://docs.flutter.dev/ui/widgets/custom-paint-and-canvas"
+          topic="custom-render"
+          description="Practical canvas drawing recipes"
+          icon="🎨"
+        />
+      </div>
     </div>
   );
 }
@@ -286,6 +334,47 @@ class AppDelegate: FlutterAppDelegate {
         description="Most native features have pub.dev plugins already. Only write platform channels when you need custom behavior or the plugin does not exist."
         variant="tip"
       />
+
+      <DeeperDive title="EventChannel — Streaming Data from Native">
+        <p className="text-foreground">
+          <code>MethodChannel</code> is request-response. But what about{" "}
+          <strong>continuous data</strong>
+          like sensor readings, location updates, or Bluetooth streams?
+        </p>
+        <p>
+          <code>EventChannel</code> creates a Dart <code>Stream</code> that
+          receives events pushed from native code. Think of it as a pipe: native
+          code pushes data in, Dart code listens on the other end.
+        </p>
+        <p>
+          <strong className="text-foreground">Common uses:</strong>{" "}
+          Accelerometer data, GPS location updates, push notification listeners,
+          Bluetooth device scanning.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Camera Plugin"
+        concept="Platform channels for hardware access"
+        description="Flutter's camera plugin uses MethodChannels for camera control (take photo, switch lens) and EventChannels for preview frames streaming. Each platform (iOS/Android) has its own native implementation."
+        icon="📷"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Platform Channels Guide"
+          url="https://docs.flutter.dev/platform-integration/platform-channels"
+          topic="platform-channels"
+          description="Official guide with Kotlin, Swift, and Dart examples"
+        />
+        <ReadMoreLink
+          title="Pigeon — Type-safe Channels"
+          url="https://pub.dev/packages/pigeon"
+          topic="platform-channels"
+          description="Auto-generate platform channel code with type safety"
+          icon="🐦"
+        />
+      </div>
     </div>
   );
 }
@@ -425,6 +514,50 @@ class _StaggeredListState extends State<StaggeredList>
         description="Use const widgets where possible. AnimatedBuilder only rebuilds its builder function. SlideTransition and FadeTransition are optimized compositing layers."
         variant="tip"
       />
+
+      <DeeperDive title="Hero Transitions — Shared Element Magic">
+        <p className="text-foreground">
+          Hero animations make a widget <strong>&quot;fly&quot;</strong> between
+          routes during navigation. Wrap the same widget with <code>Hero</code>{" "}
+          on both screens using the same <code>tag</code>.
+        </p>
+        <p>
+          Flutter automatically calculates the start and end positions, sizes,
+          and clips, then animates the transition. Combined with{" "}
+          <code>CustomClipper</code>, you can create stunning page transitions
+          that feel native and polished.
+        </p>
+        <p>
+          <strong className="text-foreground">Physics-based animations</strong>{" "}
+          use
+          <code>SpringSimulation</code> and <code>FrictionSimulation</code> for
+          natural-feeling motion. They respond to velocity, making
+          swipe-to-dismiss feel real.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Google Photos"
+        concept="Hero animations in gallery"
+        description="When you tap a photo thumbnail in Google Photos, it smoothly expands into full-screen using a Hero animation. The same image widget 'flies' between the grid and detail views."
+        icon="🖼️"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Animations Deep Dive"
+          url="https://docs.flutter.dev/ui/animations"
+          topic="advanced-animations"
+          description="Official guide to Flutter's animation system"
+        />
+        <ReadMoreLink
+          title="Rive — Professional Animations"
+          url="https://rive.app"
+          topic="advanced-animations"
+          description="Design-tool-driven animations for Flutter"
+          icon="🎬"
+        />
+      </div>
     </div>
   );
 }
@@ -533,6 +666,48 @@ final userRepo = UserRepositoryImpl(
         description="Testing: mock the repository. Switching backends: change implementation, not UI. Caching: add without touching UI code. Architecture enables change."
         variant="important"
       />
+
+      <DeeperDive title="Dependency Injection with get_it">
+        <p className="text-foreground">
+          Clean Architecture needs a way to <strong>wire up</strong>{" "}
+          implementations without hard-coding dependencies. This is where{" "}
+          <strong>Dependency Injection (DI)</strong> comes in.
+        </p>
+        <p>
+          <code>get_it</code> is a simple service locator. Register interfaces
+          at app startup, then retrieve them anywhere without passing through
+          constructors.
+        </p>
+        <p>
+          <strong className="text-foreground">Testing benefit:</strong> Swap
+          real implementations for mocks in one line:{" "}
+          <code>getIt.registerSingleton&lt;UserRepo&gt;(MockUserRepo())</code>.
+          Your tests run without network, database, or real services.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Very Good Ventures"
+        concept="Clean Architecture in client projects"
+        description="Google's recommended Flutter agency uses Clean Architecture with BLoC pattern for all client projects. Their open-source template (very_good_cli) demonstrates feature-first folder structure with clear layer separation."
+        icon="✅"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Flutter Clean Architecture"
+          url="https://resocoder.com/flutter-clean-architecture-tdd/"
+          topic="architecture-patterns"
+          description="Step-by-step tutorial with TDD approach"
+        />
+        <ReadMoreLink
+          title="BLoC Pattern Guide"
+          url="https://bloclibrary.dev"
+          topic="architecture-patterns"
+          description="Official BLoC documentation and examples"
+          icon="🧩"
+        />
+      </div>
     </div>
   );
 }
@@ -646,6 +821,48 @@ Future<void> runInIsolate() async {
         description="Do not guess - use Flutter DevTools performance tab. Find the actual bottleneck before optimizing."
         variant="warning"
       />
+
+      <DeeperDive title="const Constructors — Free Performance">
+        <p className="text-foreground">
+          The <strong>single biggest performance win</strong> in Flutter: use{" "}
+          <code>const</code> constructors.
+        </p>
+        <p>
+          When a widget is <code>const</code>, Flutter creates it once at
+          compile time and reuses the same instance forever. During rebuilds,
+          Flutter sees the identical reference and{" "}
+          <strong>skips the entire subtree</strong>.
+        </p>
+        <p>
+          <strong className="text-foreground">RepaintBoundary</strong> isolates
+          painting to a subtree. Without it, a single animation can repaint the
+          entire screen. With it, only the animated part repaints. Use Flutter
+          DevTools&apos; &quot;Highlight Repaints&quot; to visualize this.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Reflectly"
+        concept="Performance optimization at scale"
+        description="Reflectly (journaling app with 4M+ installs) uses const constructors, RepaintBoundary on animations, and lazy loading to achieve buttery smooth scrolling through thousands of journal entries."
+        icon="📓"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Flutter Performance Best Practices"
+          url="https://docs.flutter.dev/perf/best-practices"
+          topic="flutter-performance"
+          description="Official performance optimization guide"
+        />
+        <ReadMoreLink
+          title="Flutter DevTools Guide"
+          url="https://docs.flutter.dev/tools/devtools/overview"
+          topic="flutter-performance"
+          description="Master the profiling and debugging tools"
+          icon="🛠️"
+        />
+      </div>
     </div>
   );
 }
@@ -899,8 +1116,24 @@ export default function FlutterAdvancedPage() {
     }
   };
 
+  // Return quiz popup integration
+  const {
+    quizQuestion,
+    isVisible: quizVisible,
+    dismiss: dismissQuiz,
+    complete: completeQuiz,
+  } = useReturnQuiz();
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
+      {/* Return Quiz Popup */}
+      {quizVisible && quizQuestion && (
+        <ReturnQuizPopup
+          question={quizQuestion}
+          onDismiss={dismissQuiz}
+          onComplete={completeQuiz}
+        />
+      )}
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <motion.div

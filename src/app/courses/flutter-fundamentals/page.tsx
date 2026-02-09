@@ -36,6 +36,11 @@ import {
   ProgressMilestone,
 } from "@/components/learning/IconHighlight";
 import { CourseRating } from "@/components/learning/CourseRating";
+import { ReadMoreLink } from "@/components/learning/ReadMoreLink";
+import { DeeperDive } from "@/components/learning/DeeperDive";
+import { RealWorldExample } from "@/components/learning/RealWorldExample";
+import { ReturnQuizPopup } from "@/components/learning/ReturnQuizPopup";
+import { useReturnQuiz } from "@/hooks/useReturnQuiz";
 
 // ============================================
 // LESSON DATA - Immersive content structure
@@ -151,6 +156,49 @@ void main() {
         expectedOutput="A centered 'Hello, Flutter!' text on your screen"
         language="dart"
       />
+
+      <DeeperDive title="How Flutter Renders Without Native UI">
+        <p className="text-foreground">
+          Most cross-platform frameworks use a <strong>bridge</strong> to talk
+          to native UI components. Flutter takes a radically different approach:
+          it owns every pixel on screen.
+        </p>
+        <p>
+          Flutter ships its own rendering engine (Skia, now transitioning to
+          Impeller). Your Dart code compiles to native ARM, and the engine draws
+          directly to a canvas — no platform UI involved. This is why Flutter
+          achieves consistent 60/120fps across platforms.
+        </p>
+        <p>
+          <strong className="text-foreground">The tradeoff:</strong> Flutter
+          apps don&apos;t use native UI components (like UIKit on iOS), so they
+          look identical on all platforms by default. You can customize to match
+          platform conventions using <code>Cupertino</code> widgets.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Google Pay"
+        concept="Single codebase, multi-platform"
+        description="Google rebuilt Google Pay with Flutter, sharing a single codebase across iOS and Android. This cut development time by 70% and allowed the team to ship features simultaneously on both platforms."
+        icon="💳"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Flutter Architecture Overview"
+          url="https://docs.flutter.dev/resources/architectural-overview"
+          topic="flutter-intro"
+          description="Official deep dive into Flutters layered architecture"
+        />
+        <ReadMoreLink
+          title="Why Flutter Uses Dart"
+          url="https://hackernoon.com/why-flutter-uses-dart-dd635a054ebf"
+          topic="flutter-intro"
+          description="Understanding the language choice"
+          icon="🎯"
+        />
+      </div>
     </div>
   );
 }
@@ -262,6 +310,60 @@ Alex is 0 years old`}
         description="Change your code, press save, and see changes instantly—no restart needed. This makes learning Dart incredibly fast."
         variant="tip"
       />
+
+      <DeeperDive title="Dart Null Safety — Why It Matters">
+        <p className="text-foreground">
+          Before null safety, <code>null</code> errors were the #1 crash cause
+          in mobile apps. Dart 2.12+ makes variables non-nullable by default.
+        </p>
+        <p>
+          Use <code>String?</code> to allow null. Use <code>!</code> to assert
+          non-null (dangerous!). Use <code>??</code> for default values:{" "}
+          <code>name ?? &apos;Anonymous&apos;</code>.
+        </p>
+        <LiveCodeEditor
+          title="Null Safety in Action"
+          language="dart"
+          code={`// Non-nullable (guaranteed to have a value)
+String name = 'Flutter';
+
+// Nullable (might be null)
+String? nickname;
+
+// Null-aware operators
+String display = nickname ?? 'No nickname';
+int? length = nickname?.length; // null if nickname is null
+
+// Late initialization (promise it will have a value)
+late String description;
+void init() {
+  description = 'Set later but guaranteed before use';
+}`}
+        />
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="BMW"
+        concept="Dart's type system in production"
+        description="BMW's My BMW app uses Dart's strong typing and null safety to prevent crashes in safety-critical automotive features. Type safety prevents entire categories of bugs."
+        icon="🚗"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Dart Language Tour"
+          url="https://dart.dev/language"
+          topic="dart-basics"
+          description="Complete official guide to Dart syntax"
+        />
+        <ReadMoreLink
+          title="Null Safety Guide"
+          url="https://dart.dev/null-safety"
+          topic="dart-basics"
+          description="Understanding sound null safety"
+          icon="🛡️"
+        />
+      </div>
     </div>
   );
 }
@@ -408,6 +510,48 @@ function Lesson2() {
           },
         ]}
       />
+
+      <DeeperDive title="BuildContext and the Element Tree">
+        <p className="text-foreground">
+          Every <code>build()</code> method receives a <code>BuildContext</code>
+          . But what IS it?
+        </p>
+        <p>
+          <code>BuildContext</code> is the widget&apos;s{" "}
+          <strong>Element</strong> — its place in the tree. Flutter actually has{" "}
+          <em>three trees</em>: Widget tree (immutable config), Element tree
+          (lifecycle manager), and RenderObject tree (layout + paint).
+        </p>
+        <p>
+          When you call <code>Theme.of(context)</code>, you&apos;re walking UP
+          the Element tree looking for an <code>InheritedWidget</code> that
+          holds the theme data. This is why context matters — it determines what
+          your widget can "see".
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Alibaba (Xianyu)"
+        concept="Widget composition at scale"
+        description="Alibaba's Xianyu marketplace app contains 50+ custom widgets built by composing Flutter primitives. Instead of complex inheritance, they compose small, focused widgets into complex UIs."
+        icon="🏪"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Widget, Element &amp; RenderObject"
+          url="https://docs.flutter.dev/resources/inside-flutter"
+          topic="widget-tree"
+          description="How the three trees work together"
+        />
+        <ReadMoreLink
+          title="Flutter Widget Catalog"
+          url="https://docs.flutter.dev/ui/widgets"
+          topic="widget-tree"
+          description="Browse all available widgets"
+          icon="📚"
+        />
+      </div>
     </div>
   );
 }
@@ -519,6 +663,71 @@ class _CounterAppState extends State<CounterApp> {
         description="Only use StatefulWidget when your widget needs to change. If it just displays data, StatelessWidget is faster and simpler."
         variant="warning"
       />
+
+      <DeeperDive title="Beyond setState: InheritedWidget & Provider">
+        <p className="text-foreground">
+          <code>setState()</code> works for local state, but what about data
+          many widgets need?
+        </p>
+        <p>
+          <strong className="text-foreground">The problem:</strong> Passing data
+          through constructors ("prop drilling") gets messy fast. If Widget
+          A&apos;s data needs to reach Widget E (5 levels deep), every widget in
+          between must pass it.
+        </p>
+        <p>
+          <strong className="text-foreground">The solution:</strong>{" "}
+          <code>InheritedWidget</code> lets any descendant access shared data
+          via <code>context</code>. The <code>provider</code> package wraps this
+          in a clean API.
+        </p>
+        <LiveCodeEditor
+          title="State Lifting Example"
+          language="dart"
+          code={`// Instead of passing 'user' through 5 widgets:
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Provider<User>(
+      create: (_) => User('Alex'),
+      child: MaterialApp(home: HomePage()),
+    );
+  }
+}
+
+// ANY descendant can access it:
+class DeepWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final user = context.watch<User>();
+    return Text('Hello, \${user.name}!');
+  }
+}`}
+        />
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="Nubank"
+        concept="State management in fintech"
+        description="Nubank (40M+ users) uses Flutter with a reactive state management approach. Each screen declares its state needs, and the framework efficiently rebuilds only what changed."
+        icon="🏦"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="State Management Guide"
+          url="https://docs.flutter.dev/data-and-backend/state-mgmt/intro"
+          topic="state-management"
+          description="Official guide to choosing a state solution"
+        />
+        <ReadMoreLink
+          title="Provider Package"
+          url="https://pub.dev/packages/provider"
+          topic="state-management"
+          description="The recommended state management approach"
+          icon="📦"
+        />
+      </div>
     </div>
   );
 }
@@ -657,6 +866,54 @@ class HomeScreen extends StatelessWidget {
         description="Use Expanded to make a child fill leftover space. It's perfect for making flexible layouts that work on any screen size."
         variant="tip"
       />
+
+      <DeeperDive title="The Constraints System — Flutter's Golden Rule">
+        <p className="text-foreground">
+          Flutter&apos;s layout follows one rule:{" "}
+          <strong>
+            Constraints go down, sizes go up, parents set position.
+          </strong>
+        </p>
+        <p>
+          1. A parent tells its child: &quot;You can be between 0-360px
+          wide&quot; (constraints go DOWN)
+          <br />
+          2. The child says: &quot;I want to be 200px wide&quot; (sizes go UP)
+          <br />
+          3. The parent places the child at position (80, 0) (parent sets
+          POSITION)
+        </p>
+        <p>
+          <strong className="text-foreground">Common mistake:</strong> Putting
+          an unconstrained widget (like <code>ListView</code>) inside a{" "}
+          <code>Column</code>. The Column gives unbounded height, and ListView
+          takes infinite height → crash! Fix: wrap in <code>Expanded</code> or
+          <code>SizedBox</code>.
+        </p>
+      </DeeperDive>
+
+      <RealWorldExample
+        appName="eBay Motors"
+        concept="Responsive layouts across devices"
+        description="eBay Motors uses Flutter's layout system to create responsive designs that work seamlessly from phones to tablets. They use LayoutBuilder and MediaQuery to adapt UI dynamically."
+        icon="🚙"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ReadMoreLink
+          title="Understanding Constraints"
+          url="https://docs.flutter.dev/ui/layout/constraints"
+          topic="flutter-layouts"
+          description="The most important Flutter layout article"
+        />
+        <ReadMoreLink
+          title="Responsive Design in Flutter"
+          url="https://docs.flutter.dev/ui/adaptive-responsive"
+          topic="flutter-layouts"
+          description="Building adaptive layouts"
+          icon="📐"
+        />
+      </div>
     </div>
   );
 }
@@ -924,8 +1181,24 @@ export default function FlutterFundamentalsPage() {
     }
   };
 
+  // Return quiz popup integration
+  const {
+    quizQuestion,
+    isVisible: quizVisible,
+    dismiss: dismissQuiz,
+    complete: completeQuiz,
+  } = useReturnQuiz();
+
   return (
     <div className="min-h-screen pt-24 pb-16 px-4">
+      {/* Return Quiz Popup */}
+      {quizVisible && quizQuestion && (
+        <ReturnQuizPopup
+          question={quizQuestion}
+          onDismiss={dismissQuiz}
+          onComplete={completeQuiz}
+        />
+      )}
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <motion.div
