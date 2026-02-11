@@ -25,7 +25,7 @@ function getClients() {
 }
 
 // Fallback challenges when AI is not available
-const fallbackChallenges: Record<string, Omit<Challenge, "id">> = {
+const fallbackChallenges: Record<string, Omit<Challenge, "id">[]> = {
   Flutter: [
     {
       title: "Build a Smart Counter App",
